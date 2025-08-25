@@ -36,9 +36,9 @@ def main(user_id:str):
     # Step 5: Simulate user interactions
     for i, paper in enumerate(papers):
         if i == 0:
-            handle_paper_interaction(user_id, paper["id"], "LIKE")  # first one liked
+            handle_paper_interaction(user_id, paper["id"], "LIKE")  
         else:
-            handle_paper_interaction(user_id, paper["id"], "DISLIKE")  # rest disliked
+            handle_paper_interaction(user_id, paper["id"], "DISLIKE")  
 
     print(f"[INFO] User {user_id} interactions stored.")
 

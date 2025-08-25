@@ -11,9 +11,7 @@ from langchain_postgres import PGVector
 import os 
 from dotenv import load_dotenv
 from langchain_community.vectorstores import FAISS
-
 load_dotenv()
-
 
 class InteractionType(Enum):
     LIKE = 1.0

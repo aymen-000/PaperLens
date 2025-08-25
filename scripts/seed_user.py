@@ -3,9 +3,9 @@ import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from  backend.app.models.user import  User
-from backend.app.models.user_preferences import   UserPreferences
-from backend.app.models.user_embedding import  UserEmbedding  
+from backend.app.models.user import User
+from backend.app.models.user_preferences import UserPreferences, UserCategoryPreference
+from backend.app.models.user_embedding import UserEmbedding  
 from backend.app.database import Base
 import os
 from dotenv import load_dotenv 
@@ -28,22 +28,29 @@ new_user = User(name="Test User", email="test1@example.com")
 session.add(new_user)
 session.commit()  # so user.id is generated
 
-# --- Create user preferences ---
+# --- Create global user preferences row ---
 preferences = UserPreferences(
     user_id=new_user.id,
-    topics=["machine learning", "deep learning"],
-    categories=["cs.LG", "stat.ML"],
-    max_results=5,
     notification_channel="email"
 )
 session.add(preferences)
+session.flush()  # ensures preferences.id is available
+
+# --- Create per-category preferences ---
+categories = ["cs.LG", "stat.ML"]
+for cat in categories:
+    pref = UserCategoryPreference(
+        user_id=new_user.id,
+        category=cat,
+        weight=1.0  
+    )
+    session.add(pref)
 
 # --- Create user embedding ---
-embedding_vector = np.random.rand(EMBEDDING_DIM).tolist()  # random for demo
+embedding_vector = np.random.rand(EMBEDDING_DIM).tolist()  
 user_embedding = UserEmbedding(
     user_id=new_user.id,
-    embedding=embedding_vector , 
-    model_name = "openai"
+    embedding=embedding_vector,
 )
 session.add(user_embedding)
 
@@ -51,6 +58,9 @@ session.add(user_embedding)
 session.commit()
 
 print(f"User {new_user.name} created with ID {new_user.id}")
-print(f"Topics: {preferences.topics}")
-print(f"Categories: {preferences.categories}")
+print(f"Notification channel: {preferences.notification_channel}")
+
+# Fetch category prefs for debugging
+cats = session.query(UserCategoryPreference).filter_by(user_id=new_user.id).all()
+print("Categories:", [(c.category, c.weight) for c in cats])
 print(f"Embedding length: {len(embedding_vector)}")

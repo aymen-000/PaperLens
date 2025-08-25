@@ -20,68 +20,48 @@ from sqlalchemy import create_engine
 
 load_dotenv()
 class State(TypedDict):
-    messages: Annotated[list[AnyMessage], add_messages] 
+    messages: Annotated[list[AnyMessage], add_messages]
+    tool_called: List[str]
+
 
 class Assistant:
     def __init__(self, runnable: Runnable):
         self.run = runnable
 
-    def __call__(self, state: State, config :RunnableConfig):
-        while True:
-            configuration = config.get("configurable", {})
-            user_id = configuration.get("user_id", None)
-            state = {**state}
-            results = self.run.invoke(state , config=config)
-            # Check if assistant returned valid output
-            if not results.tool_calls and (
-                not results.content
-                or (isinstance(results.content, list) and not results.content[0].get("text"))
-            ):
-                message = state["messages"] + [HumanMessage(content="Respond with a real output")]
-                state = {**state, "messages": message}
-            else:
-                break
+    def __call__(self, state: State, config: RunnableConfig):
+        configuration = config.get("configurable", {})
+        user_id = configuration.get("user_id", None)
 
-        return {"messages": [results]}
-    
-    
-def handle_tool_error(state) -> Dict  : 
-    """Function to handle errors that accur during tool execution.
+        # Ensure tool_called exists
+        tool_called = state.get("tool_called", [])
 
-    Args:
-        state (dict): The current state of the AI agent , which includes messgaes and tool calls 
+        # Invoke runnable
+        results = self.run.invoke(state, config=config)
 
-    Returns:
-        Dict: A dicitionary containing error messgaes for each tool that encountered an issue.  
-    """
-    
-    error = state.get("error") 
-    tool_calls = state["messages"][-1].tool_calls 
+        # Return updated state
+        return {
+            "messages": state["messages"] + [results],
+        }
     
     
+def handle_tool_error(state) -> dict:
+    error = state.get("error")
+    tool_calls = state["messages"][-1].tool_calls
+    print(tool_calls)
     return {
-        "messages" : [
+        "messages": [
             ToolMessage(
-                content=f"Error : {repr(error)} \n please fix your mistakes" , 
-                tool_call_id = tc["id"]
-            ) 
+                content=f"Error: {repr(error)}\n please fix your mistakes.",
+                tool_call_id=tc["id"],
+            )
             for tc in tool_calls
         ]
     }
 
-def create_tool_node_with_fallback(tools : List) -> Dict : 
-    """
-        Function to create a tool node with fallback error handling .
-        
-    Args : 
-        tools (List) : A list of tools to be included in the node 
-        
-    Return : 
-        dict : A tool node that uses fallback behavior in case of errors .
-    """ 
+
+def create_tool_node_with_fallback(tools: list) -> dict:
     return ToolNode(tools).with_fallbacks(
-        [RunnableLambda(handle_tool_error)] ,  exception_key="error" 
-        
+        [RunnableLambda(handle_tool_error)], exception_key="error"
     )
     
     
@@ -127,3 +107,17 @@ class LangGraphModelFactory:
     
     
     
+def _print_event(event: dict, _printed: set, max_length=1500):
+    current_state = event.get("dialog_state" , "")
+    if current_state:
+        print("Currently in: ", current_state[-1])
+    message = event.get("messages")
+    if message:
+        if isinstance(message, list):
+            message = message[-1]
+        if message.id not in _printed:
+            msg_repr = message.pretty_repr(html=True)
+            if len(msg_repr) > max_length:
+                msg_repr = msg_repr[:max_length] + " ... (truncated)"
+            print(msg_repr)
+            _printed.add(message.id)
