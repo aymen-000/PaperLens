@@ -1,5 +1,5 @@
 from typing import List, Dict
-from agents.system_agents.crawler import call_crawler_agent
+from agents.system_agents.crawler import run_agent
 from agents.data.embedding import handle_paper_interaction , get_paper_recommendations
 from agents.data.vector_db import PaperVectorStore
 import uuid
@@ -13,32 +13,34 @@ def main(user_id:str):
             "thread_id": thread_id,
         }
     }
-    papers = call_crawler_agent(config=config)  # List[Dict] with keys: id, title, abstract, authors, categories, published, url
+    user_id = "1" 
+    papers = run_agent(user_id=user_id , thread_id=thread_id)  
     print(f"[INFO] Crawled {len(papers)} papers.")
     
     
-    # Step 2: Initialize embedding handler
+
     embedder = PaperVectorStore()
 
-    # Step 3: Store embeddings + metadata
+
     embedder.store_papers(papers)
 
     print("[INFO] All papers stored in Postgres + VectorDB.")
     
-    # Step 4: Generate recommendations
+
     recommendations: List[Dict] = get_paper_recommendations(user_id, papers)
 
     print("\n[RECOMMENDATIONS]")
     for rec in recommendations:
-        print(f"- {rec['title']} ({rec['pdf_url']})")
+       print(f"- {rec['title']} ({rec['pdf_url']})")
+       print(rec['relevance_score'])
         
         
-    # Step 5: Simulate user interactions
+
     for i, paper in enumerate(papers):
         if i == 0:
-            handle_paper_interaction(user_id, paper["id"], "LIKE")  
+            handle_paper_interaction(user_id, paper, "LIKE")  
         else:
-            handle_paper_interaction(user_id, paper["id"], "DISLIKE")  
+            handle_paper_interaction(user_id, paper, "DISLIKE")  
 
     print(f"[INFO] User {user_id} interactions stored.")
 

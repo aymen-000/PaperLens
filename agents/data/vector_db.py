@@ -32,20 +32,22 @@ class PaperVectorStore:
                 self.vectorstore = None
 
     def _to_documents(self, papers: list[dict]) -> list[Document]:
-        """Convert raw papers into LangChain Document objects."""
-        return [
-            Document(
-                page_content=p.get("content", ""),
-                metadata={
-                    "title": p.get("title", "Untitled"),
-                    "id": p.get("id"),
-                    "authors": p.get("authors", []),
-                    "categories": p.get("categories", []),
-                    "url": p.get("url")
-                }
+        docs = []
+        for p in papers:
+            content = p.get("summary")
+            docs.append(
+                Document(
+                    page_content=content,
+                    metadata={
+                        "title": p.get("title", "Untitled"),
+                        "id": p.get("id"),
+                        "authors": p.get("authors", []),
+                        "categories": p.get("categories", []),
+                        "url": p.get("url")
+                    }
+                )
             )
-            for p in papers
-        ]
+        return docs
 
     def store_papers(self, papers: list[dict]):
         """

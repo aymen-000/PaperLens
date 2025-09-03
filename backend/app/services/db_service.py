@@ -80,7 +80,6 @@ def update_user_embedding(db , user_id: str, new_paper_embedding: np.ndarray):
 def update_user_preferences(db: Session, user_id: int, category_updates: dict[str, float]):
     """
     Update user preferences (category weights) in the database.
-
     Args:
         db (Session): SQLAlchemy session.
         user_id (int): User ID.
@@ -91,42 +90,60 @@ def update_user_preferences(db: Session, user_id: int, category_updates: dict[st
     if not user_pref:
         user_pref = UserPreferences(user_id=user_id)
         db.add(user_pref)
-        db.flush()
-
-    # Fetch current categories
+        db.flush()  # Flush to get the ID for foreign key relationships
+    
+    # Fetch current categories - refresh the relationship after flush
+    db.refresh(user_pref)
     existing_prefs = {
         c.category: c for c in user_pref.categories
     }
-
+    
     # Apply updates
     for category, delta in category_updates.items():
         if category in existing_prefs:
             existing_prefs[category].weight += delta
         else:
+            # Only create new categories if delta is positive
             if delta > 0:
-                new_cat = UserCategoryPreference(user_id=user_id, category=category, weight=delta)
+                new_cat = UserCategoryPreference(
+                    user_id=user_id,  # Keep user_id as requested
+                    category=category, 
+                    weight=delta
+                )
                 db.add(new_cat)
-
-    # Remove categories with weight <= 0
-    for cat in list(user_pref.categories):
-        if cat.weight <= 0:
-            db.delete(cat)
-
+    
+    # Flush to ensure new categories are in the database
     db.flush()
-
+    
+    # Refresh to get updated categories list
+    db.refresh(user_pref)
+    
+    # Remove categories with weight <= 0
+    categories_to_remove = [cat for cat in user_pref.categories if cat.weight <= 0]
+    for cat in categories_to_remove:
+        db.delete(cat)
+    
+    # Flush deletions
+    if categories_to_remove:
+        db.flush()
+        db.refresh(user_pref)
+    
     # Enforce max 30 categories by keeping top 30
     sorted_cats = sorted(user_pref.categories, key=lambda c: c.weight, reverse=True)
     if len(sorted_cats) > 30:
-        for cat in sorted_cats[30:]:
+        categories_to_remove = sorted_cats[30:]
+        for cat in categories_to_remove:
             db.delete(cat)
-
-    db.flush()
-
+        db.flush()
+        db.refresh(user_pref)
+    
     # Normalize weights (so they sum to 1.0)
     total_weight = sum(c.weight for c in user_pref.categories)
     if total_weight > 0:
         for cat in user_pref.categories:
             cat.weight /= total_weight
-
+    
+    # Final commit
     db.commit()
+    
     return {c.category: c.weight for c in user_pref.categories}

@@ -11,6 +11,8 @@ from agents.lib.utils import LangGraphModelFactory, Assistant , _print_event , c
 from langchain.memory import ConversationBufferMemory
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage
+import ast
+import json
 load_dotenv()
 model_id = os.environ.get("CRAWLER_AGENT_MODEL_ID")
 
@@ -58,28 +60,44 @@ crawler_graph = crawler_graph.compile(checkpointer=memory)
 
 def call_crawler_agent(config: RunnableConfig):
     initial_state = {
-        "messages": [],  
+        "messages": ["Suggest to me papers based on my interests"],  
     }
     result = crawler_graph.invoke(initial_state, config=config)
     return result["messages"][-1].content  
 
+
+
+def run_agent(thread_id , user_id) : 
+    config = {
+        "configurable": {
+            "user_id": user_id,
+            "thread_id": thread_id,
+        }
+    }
+    results = call_crawler_agent(config)
+    res = results.strip().strip("```json").strip("```")
+    re_list = ast.literal_eval(res)
+    
+    return re_list
+
+
+thread_id = str(uuid.uuid4())
+thread_id =  thread_id
+
+""" 
 if __name__ == "__main__":
     thread_id = str(uuid.uuid4())
     config = {
         "configurable": {
             "user_id": "1",
-            "thread_id": "1",
+            "thread_id": thread_id,
         }
     }
-    _printed = set()
 
-    result = crawler_graph.invoke(
-        input={"messages": "Suggest to me papers based on my interests"},
-        config=config,
 
-    )
-    print("==========results===============")
-    print(result)
+    results = call_crawler_agent(config)
+    res = ast.literal_eval(results) """
+
 
 
 
