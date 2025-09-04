@@ -12,3 +12,7 @@ wheels/
 
 
 .env 
+
+.faiss 
+.pkl
+
