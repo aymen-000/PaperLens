@@ -12,6 +12,12 @@ import os
 from dotenv import load_dotenv
 from langchain_community.vectorstores import FAISS
 from backend.app.services.handle_interaction import interac_with_paper
+import torch
+from sentence_transformers import SentenceTransformer
+from PIL import Image
+from transformers import CLIPProcessor, CLIPModel
+from typing import List, Dict
+
 load_dotenv()
 
 class InteractionType(Enum):
@@ -208,6 +214,53 @@ class UserEmbeddingService:
         relevance_score = (cosine_sim + 1) / 2
         
         return relevance_score
+
+
+
+#=====================
+#papers handling
+#=====================
+
+
+class TextEmbedder:
+    """Encodes text chunks into embeddings using SciBERT/Specter2/etc."""
+
+    def __init__(self, model_name: str = "sentence-transformers/all-MiniLM-L6-v2"):
+        self.model = SentenceTransformer(model_name)
+
+    def embed(self, texts: List[str]) -> List[List[float]]:
+        return self.model.encode(texts, convert_to_numpy=True).tolist()
+
+
+class ImageEmbedder:
+    """Encodes images into embeddings using CLIP."""
+
+    def __init__(self, model_name: str = "openai/clip-vit-base-patch32"):
+        self.model = CLIPModel.from_pretrained(model_name)
+        self.processor = CLIPProcessor.from_pretrained(model_name)
+
+    def embed(self, image_paths: List[str]) -> List[List[float]]:
+        embeddings = []
+        for path in image_paths:
+            image = Image.open(path).convert("RGB")
+            inputs = self.processor(images=image, return_tensors="pt")
+            with torch.no_grad():
+                emb = self.model.get_image_features(**inputs)
+                emb = emb / emb.norm(p=2, dim=-1, keepdim=True)  # normalize
+            embeddings.append(emb.cpu().numpy().flatten().tolist())
+        return embeddings
+
+
+""" if __name__ == "__main__":
+    texts = ["This paper studies transformers for NLP."]
+    text_emb = TextEmbedder().embed(texts)
+    print("Text embedding shape:", len(text_emb), len(text_emb[0]))
+
+    imgs = ["storage/processed/images/page1_img1.png"]
+    img_emb = ImageEmbedder().embed(imgs)
+    print("Image embedding shape:", len(img_emb), len(img_emb[0])) """
+
+
 
 # ====================
 # embedding 

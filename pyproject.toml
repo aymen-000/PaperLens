@@ -9,6 +9,7 @@ dependencies = [
     "arxiv>=2.2.0",
     "dotenv>=0.9.9",
     "faiss-cpu>=1.12.0",
+    "fitz>=0.0.1.dev2",
     "langchain>=0.3.27",
     "langchain-cerebras",
     "langchain-community>=0.3.27",

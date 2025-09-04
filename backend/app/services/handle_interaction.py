@@ -53,7 +53,7 @@ def user_paper_interaction(
     return category_weights
 
 def interac_with_paper(paper: Dict[str, str],
-    int_type: Literal["like", "dislike", "view", "bookmark", "share", "delete"] , user_id:str) -> None : 
+    int_type: Literal["like", "dislike", "view", "bookmark", "share", "delete"] , user_id:str) : 
     category_weights = user_paper_interaction(paper , int_type) 
     with get_db() as db : 
         updated_weights = update_user_preferences(db , user_id , category_weights) 

@@ -3,7 +3,7 @@ from agents.system_agents.crawler import run_agent
 from agents.data.embedding import handle_paper_interaction , get_paper_recommendations
 from agents.data.vector_db import PaperVectorStore
 import uuid
-def main(user_id:str):
+def main(user_id:str , thread_id:str=None):
     # Step 1: Crawl papers
     thread_id = str(uuid.uuid4())
 

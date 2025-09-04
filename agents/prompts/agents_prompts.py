@@ -25,6 +25,7 @@ RULE: Each tool called exactly ONCE. No exceptions. No retries. No loops.
 **STEP 2: INTELLIGENT QUERY GENERATION & PAPER FETCHING**
 - Expand queries using synonyms, adjacent areas, and trending topics
 - Ensure 8–12 queries total, diverse but relevant
+- do explore more fileds that may be liked by the user
 - Execute: `fetch_recent_papers(query=generated_queries)`
 
 **STEP 3: SUMMARIZATION & CATEGORIZATION**
