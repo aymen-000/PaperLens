@@ -121,3 +121,18 @@ def _print_event(event: dict, _printed: set, max_length=1500):
                 msg_repr = msg_repr[:max_length] + " ... (truncated)"
             print(msg_repr)
             _printed.add(message.id)
+            
+            
+            
+# ============
+# Embedding Utils
+# ============
+
+
+def get_chunk_batch(chunks , batch_size=32) : 
+    chunk_b = []
+    for i in range(len(chunks) , batch_size) : 
+        chunk_batch = chunks[i:i+batch_size]
+        chunk_b.append(chunk_batch)
+        
+    return chunk_batch

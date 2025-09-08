@@ -73,3 +73,6 @@ class PaperVectorStore:
         if not self.vectorstore:
             raise ValueError("No FAISS index loaded. Call store_papers first.")
         return self.vectorstore.similarity_search(query, k=k)
+    
+    
+    

@@ -17,7 +17,7 @@ from sentence_transformers import SentenceTransformer
 from PIL import Image
 from transformers import CLIPProcessor, CLIPModel
 from typing import List, Dict
-
+from pathlib import Path
 load_dotenv()
 
 class InteractionType(Enum):
@@ -222,45 +222,64 @@ class UserEmbeddingService:
 #=====================
 
 
-class TextEmbedder:
-    """Encodes text chunks into embeddings using SciBERT/Specter2/etc."""
-
-    def __init__(self, model_name: str = "sentence-transformers/all-MiniLM-L6-v2"):
-        self.model = SentenceTransformer(model_name)
-
-    def embed(self, texts: List[str]) -> List[List[float]]:
-        return self.model.encode(texts, convert_to_numpy=True).tolist()
-
-
-class ImageEmbedder:
-    """Encodes images into embeddings using CLIP."""
+class MultimodalEmbedder:
+    """
+    Encodes both text and images into the same embedding space using CLIP.
+    """
 
     def __init__(self, model_name: str = "openai/clip-vit-base-patch32"):
-        self.model = CLIPModel.from_pretrained(model_name)
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model = CLIPModel.from_pretrained(model_name).to(self.device)
         self.processor = CLIPProcessor.from_pretrained(model_name)
 
-    def embed(self, image_paths: List[str]) -> List[List[float]]:
-        embeddings = []
-        for path in image_paths:
-            image = Image.open(path).convert("RGB")
-            inputs = self.processor(images=image, return_tensors="pt")
-            with torch.no_grad():
-                emb = self.model.get_image_features(**inputs)
-                emb = emb / emb.norm(p=2, dim=-1, keepdim=True)  # normalize
-            embeddings.append(emb.cpu().numpy().flatten().tolist())
-        return embeddings
+    def embed_text(self, texts: List[str]) -> List[List[float]]:
+        """Embed a list of text strings."""
+        inputs = self.processor(text=texts, return_tensors="pt", padding=True).to(self.device)
+        with torch.no_grad():
+            embeddings = self.model.get_text_features(**inputs)
+            embeddings = embeddings / embeddings.norm(p=2, dim=-1, keepdim=True)
+        return embeddings.cpu().numpy().tolist()
 
+    def embed_images(self, image_paths: List[str]) -> List[List[float]]:
+        """Embed a list of image file paths."""
+        imgs = [Image.open(path).convert("RGB") for path in image_paths]
+        images = [image.resize((224, 224)) for image  in imgs ]  # manually resize before processor
+        inputs = self.processor(images=images, return_tensors="pt").to(self.device)
+        with torch.no_grad():
+            embeddings = self.model.get_image_features(**inputs)
+            embeddings = embeddings / embeddings.norm(p=2, dim=-1, keepdim=True)
+        return embeddings.cpu().numpy().tolist()
+
+    def embed(self, data: List[str]) -> List[List[float]]:
+        """
+        Auto-detects text vs image input.
+        If all elements are paths to images → calls embed_images.
+        Otherwise → calls embed_text.
+        """
+        if all(Path(d).suffix.lower() in [".png", ".jpg", ".jpeg"] for d in data):
+            return self.embed_images(data)
+        else:
+            return self.embed_text(data)
+
+
+
+
+# ==============
+# test embedding 
+# ==============
 
 """ if __name__ == "__main__":
-    texts = ["This paper studies transformers for NLP."]
-    text_emb = TextEmbedder().embed(texts)
+    embedder = MultimodalEmbedder()
+
+    # Example text embeddings
+    texts = ["A diagram of a neural network", "Quantum entanglement in physics"]
+    text_emb = embedder.embed_text(texts)
     print("Text embedding shape:", len(text_emb), len(text_emb[0]))
 
-    imgs = ["storage/processed/images/page1_img1.png"]
-    img_emb = ImageEmbedder().embed(imgs)
+    # Example image embeddings
+    image_paths = ["storage/processed/images/page1_img1.png"]
+    img_emb = embedder.embed_images(image_paths)
     print("Image embedding shape:", len(img_emb), len(img_emb[0])) """
-
-
 
 # ====================
 # embedding 
