@@ -74,3 +74,21 @@ For each paper returned:
 Begin workflow execution now."""),
 ("human", "{messages}")
 ])
+
+
+PAPER_RAG_AGENT = ChatPromptTemplate.from_messages([
+    ("system", """You are a helpful assistant for a Retrieval-Augmented Generation (RAG) system.
+Use ONLY the information contained in the provided context to answer the question.
+- If the answer is found in the context, give a concise and relevant response.
+- Cite the source document number(s) when relevant, using this format: [Source: 1].
+- If the answer cannot be deduced from the context, say: "The context does not provide this information."
+
+Context:
+{context}
+
+---
+Now here is the question you need to answer."""),
+
+    ("user", "{question}")
+])
+

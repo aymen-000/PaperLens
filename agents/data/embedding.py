@@ -15,7 +15,7 @@ from backend.app.services.handle_interaction import interac_with_paper
 import torch
 from sentence_transformers import SentenceTransformer
 from PIL import Image
-from transformers import CLIPProcessor, CLIPModel
+from transformers import CLIPProcessor, CLIPModel, AutoTokenizer, AutoModel
 from typing import List, Dict
 from pathlib import Path
 load_dotenv()
@@ -224,41 +224,84 @@ class UserEmbeddingService:
 
 class MultimodalEmbedder:
     """
-    Encodes both text and images into the same embedding space using CLIP.
+    Encodes text and images into embeddings.
+    - Text: BGE (semantic text embeddings).
+    - Images: CLIP.
+    - Text (CLIP): optional, for cross-modal search (text <-> images).
     """
 
-    def __init__(self, model_name: str = "openai/clip-vit-base-patch32"):
+    def __init__(
+        self,
+        img_model_name: str = "openai/clip-vit-base-patch32",
+        text_model_name: str = "BAAI/bge-small-en-v1.5"
+    ):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.model = CLIPModel.from_pretrained(model_name).to(self.device)
-        self.processor = CLIPProcessor.from_pretrained(model_name)
+
+        # --- Image/Text model (CLIP) ---
+        self.clip_model = CLIPModel.from_pretrained(img_model_name).to(self.device)
+        self.clip_processor = CLIPProcessor.from_pretrained(img_model_name)
+
+        # --- Text model (BGE or other) ---
+        self.text_tokenizer = AutoTokenizer.from_pretrained(text_model_name)
+        self.text_model = AutoModel.from_pretrained(text_model_name).to(self.device)
 
     def embed_text(self, texts: List[str]) -> List[List[float]]:
-        """Embed a list of text strings."""
-        inputs = self.processor(text=texts, return_tensors="pt", padding=True).to(self.device)
+        """Embed text using BGE (semantic retrieval)."""
+        inputs = self.text_tokenizer(
+            texts,
+            padding=True,
+            truncation=True,
+            return_tensors="pt",
+            max_length=512
+        ).to(self.device)
+
         with torch.no_grad():
-            embeddings = self.model.get_text_features(**inputs)
+            model_output = self.text_model(**inputs)
+            embeddings = model_output.last_hidden_state.mean(dim=1)  # mean pooling
             embeddings = embeddings / embeddings.norm(p=2, dim=-1, keepdim=True)
+
+        return embeddings.cpu().numpy().tolist()
+
+    def embed_text_using_clip(self, texts: List[str]) -> List[List[float]]:
+        """Embed text using CLIP (for cross-modal text <-> image retrieval)."""
+        inputs = self.clip_processor(
+            text=texts,
+            return_tensors="pt",
+            padding=True,
+            truncation=True
+        ).to(self.device)
+
+        with torch.no_grad():
+            embeddings = self.clip_model.get_text_features(**inputs)
+            embeddings = embeddings / embeddings.norm(p=2, dim=-1, keepdim=True)
+
         return embeddings.cpu().numpy().tolist()
 
     def embed_images(self, image_paths: List[str]) -> List[List[float]]:
-        """Embed a list of image file paths."""
+        """Embed images using CLIP."""
         imgs = [Image.open(path).convert("RGB") for path in image_paths]
-        images = [image.resize((224, 224)) for image  in imgs ]  # manually resize before processor
-        inputs = self.processor(images=images, return_tensors="pt").to(self.device)
+        images = [img.resize((224, 224)) for img in imgs]
+        inputs = self.clip_processor(images=images, return_tensors="pt").to(self.device)
+
         with torch.no_grad():
-            embeddings = self.model.get_image_features(**inputs)
+            embeddings = self.clip_model.get_image_features(**inputs)
             embeddings = embeddings / embeddings.norm(p=2, dim=-1, keepdim=True)
+
         return embeddings.cpu().numpy().tolist()
 
-    def embed(self, data: List[str]) -> List[List[float]]:
+    def embed(self, data: List[str], use_clip_for_text: bool = False) -> List[List[float]]:
         """
-        Auto-detects text vs image input.
-        If all elements are paths to images → calls embed_images.
-        Otherwise → calls embed_text.
+        Auto-detect input type.
+        - If images → embed_images.
+        - If text:
+            - Default: BGE (semantic).
+            - If use_clip_for_text=True → CLIP text encoder.
         """
         if all(Path(d).suffix.lower() in [".png", ".jpg", ".jpeg"] for d in data):
             return self.embed_images(data)
         else:
+            if use_clip_for_text:
+                return self.embed_text_using_clip(data)
             return self.embed_text(data)
 
 
