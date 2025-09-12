@@ -261,7 +261,7 @@ Include relevant citations and explain your reasoning.
             }
 
 
-# ---- Main test ----
+""" # ---- Main test ----
 if __name__ == "__main__":
     try:
         # Fixed typo in environment variable name
@@ -286,4 +286,4 @@ if __name__ == "__main__":
         
     except Exception as e:
         logger.error(f"Application error: {e}")
-        print(f"Error: {e}")
+        print(f"Error: {e}") """
