@@ -4,7 +4,6 @@ from langchain_core.documents import Document
 import os
 from dotenv import load_dotenv
 import pickle
-
 load_dotenv()
 
 class PaperVectorStore:
@@ -43,7 +42,8 @@ class PaperVectorStore:
                         "id": p.get("id"),
                         "authors": p.get("authors", []),
                         "categories": p.get("categories", []),
-                        "url": p.get("url")
+                        "url": p.get("url") , 
+
                     }
                 )
             )

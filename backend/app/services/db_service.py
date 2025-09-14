@@ -45,15 +45,17 @@ def paper_exists(db, title:str):
     ).first() is not None
     
     
-def insert_paper(db, title:str, abstract:str, authors:list, categories:list, published_at, source_url:str):
+def insert_paper(db, id:str ,user_id : str ,  title:str, abstract:str, authors:list, categories:list, published_at, source_url:str ):
     """Insert a new paper and return it."""
     paper = Paper(
+        id=id , 
         title=title,
         abstract=abstract,
         authors=authors,
         categories=categories,
         published=published_at,
         url=source_url,
+        user_id=user_id
     )
     db.add(paper)
     db.commit()

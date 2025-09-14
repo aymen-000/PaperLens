@@ -363,8 +363,6 @@ def get_paper_embedding(
 
         vectorstore = FAISS.load_local(index_path, embeddings, allow_dangerous_deserialization=True)
 
-        # Fixed: More efficient search by paper_id
-        # Instead of loading all documents, try to find the specific document
         docs = vectorstore.similarity_search("", k=10000)  # Get all docs - might need optimization
         
         for doc in docs:
@@ -390,10 +388,9 @@ def handle_paper_interaction(user_id: str, paper: Dict[str, str], interaction_ty
         if not paper_id:
             raise ValueError("Paper ID is required")
         
-        # Get paper embedding from your vector store
+
         paper_embedding = get_paper_embedding(paper_id)
         
-        # Fixed: Better interaction type mapping
         interaction_mapping = {
             "like": InteractionType.LIKE,
             "dislike": InteractionType.DISLIKE,
@@ -435,7 +432,7 @@ def get_paper_recommendations(user_id: str, candidate_papers: List[Dict]) -> Lis
         
         with get_db() as db:
             user_embedding = embedding_service._get_user_embedding(
-                db, user_id, "sentence-transformers/all-MiniLM-L6-v2"  # Fixed: Use consistent model
+                db, user_id, "sentence-transformers/all-MiniLM-L6-v2" 
             )
             
             scored_papers = []
@@ -452,7 +449,7 @@ def get_paper_recommendations(user_id: str, candidate_papers: List[Dict]) -> Lis
                     
                     scored_papers.append({
                         **paper,
-                        'relevance_score': float(relevance_score)  # Fixed: Ensure serializable
+                        'relevance_score': float(relevance_score) 
                     })
                     
                 except Exception as e:

@@ -82,8 +82,8 @@ class PaperPreprocessor:
         }
 
 
-if __name__ == "__main__":
+""" if __name__ == "__main__":
     pdf_path = "storage/raw/Whats_Left_Concept_Grounding.pdf"  
     processor = PaperPreprocessor(pdf_path)
     result = processor.process()
-    print(result)
+    print(result) """

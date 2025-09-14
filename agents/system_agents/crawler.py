@@ -81,9 +81,6 @@ def run_agent(thread_id , user_id) :
     return re_list
 
 
-thread_id = str(uuid.uuid4())
-thread_id =  thread_id
-
 """ 
 if __name__ == "__main__":
     thread_id = str(uuid.uuid4())
