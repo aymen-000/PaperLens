@@ -20,4 +20,4 @@ class Paper(Base):
     # optional: relationship to access the user directly
     user = relationship("User", back_populates="papers")
     
-    
+    chat_history = relationship("ChatHistory" , back_populates="papers")

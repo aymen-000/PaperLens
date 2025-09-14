@@ -12,6 +12,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from agents.data.indexing import FAISSIndex
 from agents.data.embedding import MultimodalEmbedder 
 import numpy as np 
+from langchain_core.runnables.config import RunnableConfig
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -75,11 +76,11 @@ class ImageProcessor:
 class ScientificPaperRetriever:
     """Handles retrieval of text and images from scientific papers"""
     
-    def __init__(self):
+    def __init__(self , paper_id:str):
         self.image_processor = ImageProcessor()
         self.text_emb_size = 384  # Fixed typo: was 'szie'
         self.image_emb_size = 512
-        
+        self.paper_id = paper_id
         # Check if index files exist
         text_index_path = "faiss_index/text_index.faiss"
         image_index_path = "faiss_index/image_index.faiss"
@@ -100,7 +101,7 @@ class ScientificPaperRetriever:
         """Retrieve relevant text passages from scientific papers"""
         try:
             query_text_emb = np.array(self.embedder.embed_text([query])).astype("float32") 
-            text_results = self.text_index.search(query_text_emb[0], top_k) 
+            text_results = self.text_index.search(query_text_emb[0], top_k , paper_id=self.paper_id) 
             
             # Convert to Document objects
             documents = []
@@ -124,7 +125,7 @@ class ScientificPaperRetriever:
         """Retrieve relevant images from scientific papers"""
         try:
             query_clip_emb = np.array(self.embedder.embed_text_using_clip([query])).astype("float32") 
-            image_results = self.images_index.search(query_clip_emb[0], top_k)
+            image_results = self.images_index.search(query_clip_emb[0], top_k , paper_id=self.paper_id)
             
             valid_results = []
             for res in image_results:
@@ -223,7 +224,7 @@ Include relevant citations and explain your reasoning.
 
         return text_context, images_info
 
-    def generate_response(self, query: str, retrieval_result: RetrievalResult) -> Dict[str, Any]:
+    def generate_response(self, query: str, retrieval_result: RetrievalResult , config:RunnableConfig) -> Dict[str, Any]:
         """Generate response using Gemini Pro with multimodal capabilities"""
         try:
             # Format context
@@ -244,7 +245,7 @@ Include relevant citations and explain your reasoning.
             message = HumanMessage(content=content_parts)
 
             # Invoke Gemini
-            response = self.model.invoke([message])
+            response = self.model.invoke([message] , config=config)
 
             return {
                 "answer": response.content,
@@ -259,6 +260,22 @@ Include relevant citations and explain your reasoning.
                 "context_used": 0,
                 "images_used": 0
             }
+
+def run_paper_rag(query:str , paper_id :str , user_id:str , thread_id:str)  :
+    config = {
+        "configurable": {
+            "user_id": user_id,
+            "thread_id": thread_id,
+        }
+    }
+    GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
+    if not GOOGLE_API_KEY:
+        raise ValueError("GOOGLE_API_KEY environment variable not set")
+    agent = GeminiProAgent(api_key=GOOGLE_API_KEY, model_name="gemini-2.0-flash-exp")
+    retrieval = ScientificPaperRetriever(paper_id=paper_id)
+    retrieval_result = retrieval.retrieve_all(query=query, text_top_k=2, image_top_k=1 )
+    response = agent.generate_response(query, retrieval_result , config=config)
+    return response
 
 
 """ # ---- Main test ----

@@ -66,11 +66,11 @@ def main(user_id:str , thread_id:str=None):
     
     text_chunks = chunker.chunk_text(raw_text) 
     text_embs = embedder.embed_text(text_chunks)
-    text_meta = [{"type": "text", "chunk": i, "content": c} for i, c in enumerate(text_chunks)]
+    text_meta = [{"chunk_type": "text", "chunk": i, "content": c , "paper_id": "1"} for i, c in enumerate(text_chunks)]
     print("[Info] Done with text embedding")
     image_paths = [os.path.join("storage/processed/images" , file_name ) for file_name in os.listdir("storage/processed/images") ]
     image_embs = embedder.embed_images(image_paths)
-    image_meta = [{"type": "image", "path": p} for p in image_paths]
+    image_meta = [{"chunk_type": "image", "path": p , "paper_id": "1"} for p in image_paths]
     print("[Info] Done with images embeddings")
     # Store
     # Text index

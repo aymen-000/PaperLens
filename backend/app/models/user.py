@@ -16,3 +16,4 @@ class User(Base):
     embedding = relationship("UserEmbedding", back_populates="user", uselist=False)
     feedback = relationship("UserFeedback", back_populates="user")
     papers = relationship("Paper" , back_populates="user")
+    chat_history = relationship("ChatHistory" , back_populates="user")

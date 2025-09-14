@@ -8,6 +8,8 @@ from backend.app.models.user_embedding import UserEmbedding
 from contextlib import contextmanager
 import numpy as np 
 from sqlalchemy.orm import Session 
+from backend.app.models.chat_history import ChatHistory
+import uuid
 load_dotenv()
 database_url = os.environ.get("DATABASE_URL")
 engine = create_engine(database_url)
@@ -149,3 +151,26 @@ def update_user_preferences(db: Session, user_id: int, category_updates: dict[st
     db.commit()
     
     return {c.category: c.weight for c in user_pref.categories}
+
+
+def insert_chat_history(
+    db: Session,
+    session_id: str,
+    content: str,
+    user_id: str,
+    paper_id: str
+) :
+    """
+    Insert a new chat history record into the database.
+    """
+    chat_entry = ChatHistory(
+        id=str(uuid.uuid4()),   # generate unique ID
+        session_id=session_id,
+        content=content,
+        user_id=user_id,
+        paper_id=paper_id
+    )
+    db.add(chat_entry)
+    db.commit()
+    db.refresh(chat_entry)
+    return chat_entry
