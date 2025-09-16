@@ -14,7 +14,7 @@ export function TopBar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement search functionality with FastAPI backend
+    // TODO: Implement search functionality with Flask backend
     console.log("Searching for:", searchQuery)
   }
 

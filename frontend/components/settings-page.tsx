@@ -29,7 +29,7 @@ export function SettingsPage() {
   const loadUserData = async () => {
     try {
       setLoading(true)
-      // Replace with your FastAPI endpoint: GET /api/user/profile
+      // Replace with your Flask endpoint: GET /api/user/profile
       const userData = await userAPI.getProfile()
 
       setProfile({
@@ -68,7 +68,7 @@ export function SettingsPage() {
   const handleSaveProfile = async () => {
     try {
       setSaving(true)
-      // Replace with your FastAPI endpoint: PUT /api/user/profile
+      // Replace with your Flask endpoint: PUT /api/user/profile
       await userAPI.updateProfile(profile)
       // Show success message (you can add toast notification here)
       console.log("Profile saved successfully")
@@ -83,7 +83,7 @@ export function SettingsPage() {
   const handleSaveInterests = async () => {
     try {
       setSaving(true)
-      // Replace with your FastAPI endpoint: PUT /api/user/interests
+      // Replace with your Flask endpoint: PUT /api/user/interests
       await userAPI.updateInterests(interests)
       // Show success message (you can add toast notification here)
       console.log("Interests saved successfully")

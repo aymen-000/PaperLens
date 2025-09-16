@@ -280,27 +280,6 @@ def run_paper_rag(query:str , paper_id :str , user_id:str , thread_id:str)  :
 
 """ # ---- Main test ----
 if __name__ == "__main__":
-    try:
-        # Fixed typo in environment variable name
-        GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
-        
-        if not GOOGLE_API_KEY:
-            raise ValueError("GOOGLE_API_KEY environment variable not set")
-        
-        # Initialize agent
-        agent = GeminiProAgent(api_key=GOOGLE_API_KEY, model_name="gemini-2.0-flash-exp")
-        
-        query = "Explain what this paper is about"
-        retrieval = ScientificPaperRetriever()
-        retrieval_result = retrieval.retrieve_all(query=query, text_top_k=2, image_top_k=1)
-        
-        response = agent.generate_response(query, retrieval_result)
-
-        print("\n===== MODEL RESPONSE =====")
-        print(response["answer"])
-        print(f"\nContext documents used: {response['context_used']}")
-        print(f"Images used: {response['images_used']}")
-        
-    except Exception as e:
-        logger.error(f"Application error: {e}")
-        print(f"Error: {e}") """
+    query = "What is the methodology used in this paper?"
+    response = run_paper_rag(query , "1" , "1" , "1")
+    print(response)  """

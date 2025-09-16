@@ -65,13 +65,17 @@ export function RAGPanel({ paper, onClose }: RAGPanelProps) {
     setIsLoading(true)
 
     try {
-      const response = await ragAPI.askQuestion(currentQuestion, [paper.id])
+      const response = await ragAPI.askQuestion(currentQuestion, paper.id)
+
+      // Handle both mock and real API response formats
+      const answer = response.response?.answer || response.answer
+      const sources = response.response?.sources || response.sources
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: "assistant",
-        content: response.answer,
-        references: response.sources?.map((source) => source.title) || [],
+        content: answer,
+        references: sources?.map((source: any) => source.title) || [],
         timestamp: new Date(),
       }
 

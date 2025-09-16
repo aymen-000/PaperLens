@@ -10,6 +10,7 @@ import numpy as np
 from sqlalchemy.orm import Session 
 from backend.app.models.chat_history import ChatHistory
 import uuid
+from sqlalchemy.exc import IntegrityError
 load_dotenv()
 database_url = os.environ.get("DATABASE_URL")
 engine = create_engine(database_url)
@@ -47,10 +48,11 @@ def paper_exists(db, title:str):
     ).first() is not None
     
     
-def insert_paper(db, id:str ,user_id : str ,  title:str, abstract:str, authors:list, categories:list, published_at, source_url:str ):
-    """Insert a new paper and return it."""
+def insert_paper(db, id: str, user_id: int, title: str, abstract: str,
+                 authors: list, categories: list, published_at, source_url: str):
+    """Insert a new paper if it does not exist and return it."""
     paper = Paper(
-        id=id , 
+        id=id,
         title=title,
         abstract=abstract,
         authors=authors,
@@ -59,11 +61,16 @@ def insert_paper(db, id:str ,user_id : str ,  title:str, abstract:str, authors:l
         url=source_url,
         user_id=user_id
     )
-    db.add(paper)
-    db.commit()
-    db.refresh(paper)
-    return paper
 
+    try:
+        db.add(paper)
+        db.commit()
+        db.refresh(paper)
+        return paper
+    except IntegrityError:
+        db.rollback()  # Rollback to avoid broken transaction
+        # Fetch existing paper instead of failing
+        return db.query(Paper).filter_by(id=id).first()
 
 def get_embedding(db, user_id: str):
     """Return UserEmbedding row for the given user_id."""

@@ -63,12 +63,6 @@ For each paper returned:
 
 ---
 
-### PERFORMANCE TARGETS:
-- Query generation: <30 seconds
-- Summary length: 2–4 lines
-- Categories: 2–4 per paper
-- Paper relevance: >80% aligned with user interests
-- Recency: Prioritize last 30 days
 
 **EXECUTION REMINDER**: Follow the exact sequence. One tool call per step. No additional commentary after Step 3.
 Begin workflow execution now."""),

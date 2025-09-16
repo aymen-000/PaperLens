@@ -16,17 +16,7 @@ import {
   ChevronUp,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-interface Paper {
-  id: string
-  title: string
-  authors: string[]
-  abstract: string
-  date: string
-  category: string
-  arxiv_id: string
-  liked?: boolean
-}
+import type { Paper } from "@/lib/api"
 
 interface PaperCardProps {
   paper: Paper
@@ -50,17 +40,25 @@ export function PaperCard({ paper, onAction, onSelect }: PaperCardProps) {
     return text.slice(0, maxLength) + "..."
   }
 
+  const getArxivId = () => {
+    if (paper.source_url?.includes("arxiv.org")) {
+      const match = paper.source_url.match(/(\d{4}\.\d{4,5})/)
+      return match ? `arxiv:${match[1]}` : "arXiv"
+    }
+    return "Paper"
+  }
+
   return (
     <Card className="group hover:shadow-lg transition-all duration-200 border-border bg-card">
       <CardHeader className="pb-3">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <h3 className="text-base sm:text-lg font-semibold text-card-foreground leading-tight mb-2 text-balance">
               {paper.title}
             </h3>
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground mb-2">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 min-w-0">
                 <Users className="w-3 h-3 flex-shrink-0" />
                 <span className="truncate">
                   {paper.authors.slice(0, 2).join(", ")}
@@ -70,39 +68,41 @@ export function PaperCard({ paper, onAction, onSelect }: PaperCardProps) {
 
               <div className="flex items-center gap-1">
                 <Calendar className="w-3 h-3 flex-shrink-0" />
-                <span>{formatDate(paper.date)}</span>
+                <span>{formatDate(paper.published_at)}</span>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary" className="text-xs">
-                {paper.category}
-              </Badge>
+              {paper.categories.map((category, index) => (
+                <Badge key={index} variant="secondary" className="text-xs capitalize">
+                  {category}
+                </Badge>
+              ))}
               <Badge variant="outline" className="text-xs">
-                {paper.arxiv_id}
+                {getArxivId()}
               </Badge>
             </div>
           </div>
 
-          <div className="flex sm:flex-col gap-2 self-start">
+          <div className="flex sm:flex-col gap-2 self-start flex-shrink-0">
             <Button
               variant={paper.liked ? "default" : "outline"}
               size="sm"
               onClick={() => onAction(paper.id, paper.liked ? "dislike" : "like")}
               className={cn(
-                "transition-colors flex-1 sm:flex-none",
+                "transition-colors flex-1 sm:flex-none min-w-0",
                 paper.liked && "bg-secondary hover:bg-secondary/80",
               )}
             >
               {paper.liked ? <Heart className="w-4 h-4 fill-current" /> : <HeartOff className="w-4 h-4" />}
-              <span className="ml-2 sm:hidden">{paper.liked ? "Liked" : "Like"}</span>
+              <span className="ml-2 sm:hidden truncate">{paper.liked ? "Liked" : "Like"}</span>
             </Button>
 
             <Button
               variant="outline"
               size="sm"
               onClick={() => onAction(paper.id, "delete")}
-              className="text-destructive hover:text-destructive hover:bg-destructive/10 flex-1 sm:flex-none"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10 flex-1 sm:flex-none min-w-0"
             >
               <Trash2 className="w-4 h-4" />
               <span className="ml-2 sm:hidden">Delete</span>
@@ -113,7 +113,7 @@ export function PaperCard({ paper, onAction, onSelect }: PaperCardProps) {
 
       <CardContent className="pt-0">
         <div className="mb-4">
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-sm text-muted-foreground leading-relaxed break-words">
             {isExpanded ? paper.abstract : truncateAbstract(paper.abstract)}
           </p>
 
@@ -147,18 +147,18 @@ export function PaperCard({ paper, onAction, onSelect }: PaperCardProps) {
             className="flex items-center justify-center gap-2 bg-transparent"
           >
             <MessageSquare className="w-4 h-4" />
-            Ask Questions
+            <span className="truncate">Ask Questions</span>
           </Button>
 
           <Button
             variant="ghost"
             size="sm"
             className="flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
-            onClick={() => window.open(`https://arxiv.org/abs/${paper.arxiv_id.replace("arxiv:", "")}`, "_blank")}
+            onClick={() => window.open(paper.source_url, "_blank")}
           >
             <ExternalLink className="w-4 h-4" />
-            <span className="hidden sm:inline">View on arXiv</span>
-            <span className="sm:hidden">arXiv</span>
+            <span className="hidden sm:inline">View Paper</span>
+            <span className="sm:hidden truncate">View</span>
           </Button>
         </div>
       </CardContent>

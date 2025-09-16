@@ -31,7 +31,7 @@ export function NotificationSettings() {
   })
 
   const handleSaveSettings = async () => {
-    // TODO: Implement API call to save notification settings to FastAPI backend
+    // TODO: Implement API call to save notification settings to Flask backend
     console.log("Saving notification settings:", {
       email: emailSettings,
       telegram: telegramSettings,

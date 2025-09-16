@@ -10,7 +10,7 @@ class User(Base):
     email = Column(String(255), unique=True, nullable=False, index=True)
     name = Column(String(255), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
+    password = Column(String(250), nullable=False)
     # Relationships
     preferences = relationship("UserPreferences", back_populates="user", uselist=False)
     embedding = relationship("UserEmbedding", back_populates="user", uselist=False)

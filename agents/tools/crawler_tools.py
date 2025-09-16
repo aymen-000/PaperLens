@@ -38,13 +38,12 @@ def get_user_interests(config:RunnableConfig) -> Dict:
         return {"categories": [], "error": f"Database error: {str(e)}"}
 
 @tool
-def fetch_recent_papers(query: str, max_results: str = "10") -> List[Dict]:
+def fetch_recent_papers(query: str) -> List[Dict]:
     """
     Tool: Fetch recent papers from arXiv based on a search query.
     
     Args:
-        query (str): Search keywords for arXiv.
-        max_results (str): Number of papers to retrieve (default: '10').
+        query : Search keywords for arXiv.
         
     Returns:
         list[dict]: List of paper metadata dictionaries containing:
@@ -62,11 +61,11 @@ def fetch_recent_papers(query: str, max_results: str = "10") -> List[Dict]:
         return [{"error": "Query cannot be empty"}]
     
     try:
-        # print(f"Fetching papers for query: '{query}' with max_results: {int(max_results)}")
+        # print(f"Fetching papers for query: '{query}' with max_results: 30")
         client = arxiv.Client()
         search = arxiv.Search(
             query=query,
-            max_results=int(max_results),
+            max_results=30,
             sort_by=arxiv.SortCriterion.SubmittedDate
         )
         

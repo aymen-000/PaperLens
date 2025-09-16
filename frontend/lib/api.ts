@@ -1,8 +1,9 @@
 import axios from "axios"
+import { getAuthHeaders, getUserId } from "./auth"
 
-const USE_MOCK_DATA = process.env.NODE_ENV === "development" || !process.env.NEXT_PUBLIC_API_URL
+const USE_MOCK_DATA = process.env.NODE_ENV === "development" && !process.env.NEXT_PUBLIC_API_URL
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -13,11 +14,8 @@ const api = axios.create({
 
 // Request interceptor for auth
 api.interceptors.request.use((config) => {
-  // TODO: Add your authentication token here
-  // const token = localStorage.getItem('token')
-  // if (token) {
-  //   config.headers.Authorization = `Bearer ${token}`
-  // }
+  const authHeaders = getAuthHeaders()
+  config.headers = { ...config.headers, ...authHeaders }
   return config
 })
 
@@ -33,13 +31,13 @@ api.interceptors.response.use(
 // Types for API responses
 export interface Paper {
   id: string
+  user_id: string
   title: string
   authors: string[]
   abstract: string
-  published_date: string
-  arxiv_id?: string
-  pdf_url?: string
   categories: string[]
+  source_url: string
+  published_at: string
   liked?: boolean
 }
 
@@ -74,36 +72,39 @@ export interface RAGResponse {
 
 const mockPapers: Paper[] = [
   {
-    id: "1",
+    id: "paper123",
+    user_id: "123",
     title: "Attention Is All You Need: Revisiting Transformer Architectures for Scientific Text Analysis",
     authors: ["John Smith", "Jane Doe", "Bob Johnson"],
     abstract:
       "We present a comprehensive analysis of transformer architectures applied to scientific text processing. Our findings demonstrate significant improvements in understanding complex academic literature through attention mechanisms...",
-    published_date: "2024-01-15",
-    categories: ["Machine Learning"],
-    arxiv_id: "arxiv:2401.12345",
+    published_at: "2025-01-15",
+    categories: ["deep learning"],
+    source_url: "http://arxiv.org/pdf/2401.12345",
     liked: false,
   },
   {
-    id: "2",
+    id: "paper456",
+    user_id: "123",
     title: "Quantum Computing Applications in Molecular Dynamics Simulations",
     authors: ["Alice Chen", "David Wilson"],
     abstract:
       "This paper explores the potential of quantum computing algorithms for accelerating molecular dynamics simulations. We propose novel quantum circuits that can efficiently model complex molecular interactions...",
-    published_date: "2024-01-14",
-    categories: ["Quantum Physics"],
-    arxiv_id: "arxiv:2401.12346",
+    published_at: "2025-01-14",
+    categories: ["quantum physics"],
+    source_url: "http://arxiv.org/pdf/2401.12346",
     liked: true,
   },
   {
-    id: "3",
+    id: "paper789",
+    user_id: "123",
     title: "Neural Network Approaches to Climate Change Prediction Models",
     authors: ["Sarah Martinez", "Michael Brown", "Lisa Wang"],
     abstract:
       "We investigate the application of deep learning techniques to improve climate change prediction accuracy. Our model incorporates multiple data sources and demonstrates superior performance...",
-    published_date: "2024-01-13",
-    categories: ["Environmental Science"],
-    arxiv_id: "arxiv:2401.12347",
+    published_at: "2025-01-13",
+    categories: ["machine learning"],
+    source_url: "http://arxiv.org/pdf/2401.12347",
     liked: false,
   },
 ]
@@ -131,43 +132,29 @@ const simulateDelay = (ms = 800) => new Promise((resolve) => setTimeout(resolve,
 
 // Paper API endpoints
 export const paperAPI = {
-  // TODO: Replace with your FastAPI endpoint: GET /api/papers
+  // Matches: POST /api/papers/load_papers?user_id=<user_id>
   getPersonalizedPapers: async (filters?: { category?: string; recent?: boolean }) => {
-    if (USE_MOCK_DATA) {
-      await simulateDelay()
-      let filteredPapers = [...mockPapers]
+    const userId = getUserId()
+    if (!userId) throw new Error("User not authenticated")
 
-      if (filters?.recent) {
-        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-        filteredPapers = filteredPapers.filter((paper) => new Date(paper.published_date) > weekAgo)
-      }
-
-      if (filters?.category === "liked") {
-        filteredPapers = filteredPapers.filter((paper) => paper.liked)
-      }
-
-      return filteredPapers
-    }
-
-    const response = await api.get("/api/papers", { params: filters })
-    return response.data as Paper[]
-  },
-
-  // TODO: Replace with your FastAPI endpoint: POST /api/papers/{id}/like
-  likePaper: async (paperId: string, liked: boolean) => {
-    if (USE_MOCK_DATA) {
-      await simulateDelay(300)
-      // Update mock data
-      const paper = mockPapers.find((p) => p.id === paperId)
-      if (paper) paper.liked = liked
-      return { success: true }
-    }
-
-    const response = await api.post(`/api/papers/${paperId}/like`, { liked })
+    const response = await api.get(`/api/papers/load_papers?user_id=${userId}`)
     return response.data
   },
 
-  // TODO: Replace with your FastAPI endpoint: DELETE /api/papers/{id}
+  // Matches: POST /api/users/paper-interaction
+  likePaper: async (paperId: string, liked: boolean, categories: string[]) => {
+    const userId = getUserId()
+    if (!userId) throw new Error("User not authenticated")
+
+    const response = await api.post("/api/users/paper-interaction", {
+      user_id: userId,
+      paper: { id: paperId, categories },
+      interaction: liked ? "LIKE" : "DISLIKE",
+    })
+    return response.data
+  },
+
+  // Note: Delete functionality not in API docs - keeping as placeholder
   deletePaper: async (paperId: string) => {
     if (USE_MOCK_DATA) {
       await simulateDelay(300)
@@ -176,74 +163,90 @@ export const paperAPI = {
       return { success: true }
     }
 
-    const response = await api.delete(`/api/papers/${paperId}`)
-    return response.data
+    // TODO: Add delete endpoint to your Flask backend if needed
+    throw new Error("Delete functionality not implemented in API")
   },
 
-  // TODO: Replace with your FastAPI endpoint: POST /api/papers/refresh
+  // Matches: POST /api/papers/crawl-papers
   refreshPapers: async () => {
     if (USE_MOCK_DATA) {
       await simulateDelay(1000)
-      return [...mockPapers]
+      return { success: true, papers_count: mockPapers.length, papers: mockPapers }
     }
 
-    const response = await api.post("/api/papers/refresh")
-    return response.data as Paper[]
+    const userId = getUserId()
+    if (!userId) throw new Error("User not authenticated")
+
+    const response = await api.post("/api/papers/crawl-papers", {
+      user_id: userId,
+    })
+    return response.data
   },
 
-  // TODO: Replace with your FastAPI endpoint: GET /api/papers/{id}
-  getPaperDetails: async (paperId: string) => {
+  // Health check endpoint
+  healthCheck: async () => {
     if (USE_MOCK_DATA) {
-      await simulateDelay()
-      return mockPapers.find((p) => p.id === paperId) || mockPapers[0]
+      await simulateDelay(200)
+      return { status: "healthy", message: "Paper Research API is running" }
     }
 
-    const response = await api.get(`/api/papers/${paperId}`)
-    return response.data as Paper
+    const response = await api.get("/api/papers/health")
+    return response.data
   },
 }
 
 // RAG API endpoints
 export const ragAPI = {
-  // TODO: Replace with your FastAPI endpoint: POST /api/rag/query
-  askQuestion: async (question: string, paperIds?: string[]) => {
+  // Matches: POST /api/bot/paper_chat
+  askQuestion: async (question: string, paperId?: string, threadId?: string) => {
     if (USE_MOCK_DATA) {
       await simulateDelay(1500)
       return {
-        answer: `Based on the research papers, I can provide insights about your question: "${question}". The studies demonstrate significant findings in this area, with methodological approaches that highlight key implications for the field. The evidence suggests strong correlations and potential applications for future research.`,
-        sources: [
-          { paper_id: paperIds?.[0] || "1", title: "Section 3.2", relevance_score: 0.95 },
-          { paper_id: paperIds?.[0] || "1", title: "Figure 2", relevance_score: 0.87 },
-          { paper_id: paperIds?.[0] || "1", title: "Table 1", relevance_score: 0.82 },
-        ],
-        confidence: 0.89,
-      } as RAGResponse
+        success: true,
+        response: {
+          answer: `Based on the research papers, I can provide insights about your question: "${question}". The studies demonstrate significant findings in this area, with methodological approaches that highlight key implications for the field. The evidence suggests strong correlations and potential applications for future research.`,
+          sources: [
+            { paper_id: paperId || "1", title: "Section 3.2", relevance_score: 0.95 },
+            { paper_id: paperId || "1", title: "Figure 2", relevance_score: 0.87 },
+            { paper_id: paperId || "1", title: "Table 1", relevance_score: 0.82 },
+          ],
+        },
+      }
     }
 
-    const response = await api.post("/api/rag/query", {
-      question,
-      paper_ids: paperIds,
+    const userId = getUserId()
+    if (!userId) throw new Error("User not authenticated")
+
+    const response = await api.post("/api/bot/paper_chat", {
+      query: question,
+      paper_id: paperId,
+      user_id: userId,
+      thread_id: threadId,
     })
-    return response.data as RAGResponse
+    return response.data
   },
 
-  // TODO: Replace with your FastAPI endpoint: GET /api/rag/history
-  getChatHistory: async (sessionId?: string) => {
+  // Matches: GET /api/bot/chat-history
+  getChatHistory: async (paperId?: string) => {
     if (USE_MOCK_DATA) {
       await simulateDelay()
-      return []
+      return { success: true, count: 0, history: [] }
     }
 
-    const response = await api.get("/api/rag/history", {
-      params: { session_id: sessionId },
-    })
+    const userId = getUserId()
+    if (!userId) throw new Error("User not authenticated")
+
+    const params = new URLSearchParams({ user_id: userId })
+    if (paperId) params.append("paper_id", paperId)
+
+    const response = await api.get(`/api/bot/chat-history?${params.toString()}`)
     return response.data
   },
 }
 
 // User API endpoints
 export const userAPI = {
-  // TODO: Replace with your FastAPI endpoint: GET /api/user/profile
+  // TODO: Replace with your Flask endpoint: GET /api/user/profile
   getProfile: async () => {
     if (USE_MOCK_DATA) {
       await simulateDelay()
@@ -254,7 +257,7 @@ export const userAPI = {
     return response.data as User
   },
 
-  // TODO: Replace with your FastAPI endpoint: PUT /api/user/profile
+  // TODO: Replace with your Flask endpoint: PUT /api/user/profile
   updateProfile: async (profileData: Partial<User>) => {
     if (USE_MOCK_DATA) {
       await simulateDelay(500)
@@ -266,7 +269,7 @@ export const userAPI = {
     return response.data as User
   },
 
-  // TODO: Replace with your FastAPI endpoint: PUT /api/user/interests
+  // TODO: Replace with your Flask endpoint: PUT /api/user/interests
   updateInterests: async (interests: string[]) => {
     if (USE_MOCK_DATA) {
       await simulateDelay(500)
@@ -278,7 +281,7 @@ export const userAPI = {
     return response.data
   },
 
-  // TODO: Replace with your FastAPI endpoint: PUT /api/user/preferences
+  // TODO: Replace with your Flask endpoint: PUT /api/user/preferences
   updatePreferences: async (preferences: User["ai_preferences"]) => {
     if (USE_MOCK_DATA) {
       await simulateDelay(500)
@@ -290,7 +293,7 @@ export const userAPI = {
     return response.data
   },
 
-  // TODO: Replace with your FastAPI endpoint: PUT /api/user/notifications
+  // TODO: Replace with your Flask endpoint: PUT /api/user/notifications
   updateNotificationSettings: async (settings: User["notification_preferences"]) => {
     if (USE_MOCK_DATA) {
       await simulateDelay(500)
@@ -302,61 +305,43 @@ export const userAPI = {
     return response.data
   },
 }
-
+// ====================
 // Auth API endpoints
+// ====================
 export const authAPI = {
-  // TODO: Replace with your FastAPI endpoint: POST /api/auth/login
   login: async (email: string, password: string) => {
-    if (USE_MOCK_DATA) {
-      await simulateDelay()
-      return { token: "mock-jwt-token", user: mockUser }
-    }
-
-    const response = await api.post("/api/auth/login", { email, password })
+    const response = await api.post("/api/user/login", { email, password })
+    console.log("response")
+    console.log(response)
     return response.data
   },
 
-  // TODO: Replace with your FastAPI endpoint: POST /api/auth/logout
+  register: async (email: string, password: string, name?: string) => {
+
+    const response = await api.post("/api/user/register", { email, password, name })
+    return response.data
+  },
+
   logout: async () => {
     if (USE_MOCK_DATA) {
       await simulateDelay()
       return { success: true }
     }
 
-    const response = await api.post("/api/auth/logout")
+    const response = await api.post("/api/user/logout")
     return response.data
   },
 
-  // TODO: Replace with your FastAPI endpoint: GET /api/auth/me
   getCurrentUser: async () => {
     if (USE_MOCK_DATA) {
       await simulateDelay()
       return mockUser
     }
 
-    const response = await api.get("/api/auth/me")
+    const response = await api.get("/api/user/me")
     return response.data as User
   },
 }
 
 export default api
 
-/*
-TO ENABLE REAL API CALLS:
-1. Set NEXT_PUBLIC_API_URL environment variable to your FastAPI backend URL
-2. Or change USE_MOCK_DATA to false at the top of this file
-3. Replace all TODO comments with your actual FastAPI endpoint implementations
-
-Example environment variable:
-NEXT_PUBLIC_API_URL=http://localhost:8000
-
-Your FastAPI endpoints should match these patterns:
-- GET /api/papers
-- POST /api/papers/{id}/like
-- DELETE /api/papers/{id}
-- POST /api/papers/refresh
-- POST /api/rag/query
-- GET /api/user/profile
-- PUT /api/user/profile
-- PUT /api/user/interests
-*/

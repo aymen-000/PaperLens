@@ -29,7 +29,7 @@ def should_continue(state):
     return "__end__"
 
 
-factory = LangGraphModelFactory(model_name=model_id, temperature=0.1)
+factory = LangGraphModelFactory(model_name=model_id, temperature=0)
 llm = factory.get_model()
 
 
@@ -92,8 +92,8 @@ if __name__ == "__main__":
     }
 
 
-    results = call_crawler_agent(config)
-    res = ast.literal_eval(results) """
+    r = run_agent(thread_id , "1")
+    print(r)  """
 
 
 

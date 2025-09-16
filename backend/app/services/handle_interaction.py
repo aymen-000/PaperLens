@@ -43,8 +43,6 @@ def user_paper_interaction(
 
     # Collect all categories of the paper
     categories = set()
-    if paper.get("primary_category"):
-        categories.add(paper["primary_category"])
     if paper.get("categories"):
         categories.update(paper["categories"])
 
