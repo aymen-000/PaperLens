@@ -47,7 +47,7 @@ graph TB
     
     subgraph "Application Layer"
         K[Backend] --> L[React Frontend]
-        M[LangGraph Agents] --> N[Notification Service<br/>Email + Telegram (in the future)]
+        M[LangGraph Agents] --> N[Notification Service<br/>Email + Telegram]
     end
     
     E --> I
