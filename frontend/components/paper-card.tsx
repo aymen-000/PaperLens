@@ -41,8 +41,8 @@ export function PaperCard({ paper, onAction, onSelect }: PaperCardProps) {
   }
 
   const getArxivId = () => {
-    if (paper.source_url?.includes("arxiv.org")) {
-      const match = paper.source_url.match(/(\d{4}\.\d{4,5})/)
+    if (paper.url?.includes("arxiv.org")) {
+      const match = paper.url.match(/(\d{4}\.\d{4,5})/)
       return match ? `arxiv:${match[1]}` : "arXiv"
     }
     return "Paper"
@@ -68,7 +68,7 @@ export function PaperCard({ paper, onAction, onSelect }: PaperCardProps) {
 
               <div className="flex items-center gap-1">
                 <Calendar className="w-3 h-3 flex-shrink-0" />
-                <span>{formatDate(paper.published_at)}</span>
+                <span>{formatDate(paper.published)}</span>
               </div>
             </div>
 
@@ -86,16 +86,16 @@ export function PaperCard({ paper, onAction, onSelect }: PaperCardProps) {
 
           <div className="flex sm:flex-col gap-2 self-start flex-shrink-0">
             <Button
-              variant={paper.liked ? "default" : "outline"}
+              variant={paper.like ? "default" : "outline"}
               size="sm"
-              onClick={() => onAction(paper.id, paper.liked ? "dislike" : "like")}
+              onClick={() => onAction(paper.id, paper.like ? "dislike" : "like")}
               className={cn(
                 "transition-colors flex-1 sm:flex-none min-w-0",
-                paper.liked && "bg-secondary hover:bg-secondary/80",
+                paper.like && "bg-secondary hover:bg-secondary/80",
               )}
             >
-              {paper.liked ? <Heart className="w-4 h-4 fill-current" /> : <HeartOff className="w-4 h-4" />}
-              <span className="ml-2 sm:hidden truncate">{paper.liked ? "Liked" : "Like"}</span>
+              {paper.like ? <Heart className="w-4 h-4 fill-current" /> : <HeartOff className="w-4 h-4" />}
+              <span className="ml-2 sm:hidden truncate">{paper.like ? "Liked" : "Like"}</span>
             </Button>
 
             <Button
@@ -154,7 +154,7 @@ export function PaperCard({ paper, onAction, onSelect }: PaperCardProps) {
             variant="ghost"
             size="sm"
             className="flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
-            onClick={() => window.open(paper.source_url, "_blank")}
+            onClick={() => window.open(paper.url, "_blank")}
           >
             <ExternalLink className="w-4 h-4" />
             <span className="hidden sm:inline">View Paper</span>

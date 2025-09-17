@@ -63,6 +63,7 @@ class UserEmbeddingService:
             weighted_embeddings = self._calculate_weighted_embeddings(
                 paper_embeddings, interaction_types
             ) 
+    
             if len(weighted_embeddings) == 0:
                 return current_embedding
             
@@ -70,10 +71,13 @@ class UserEmbeddingService:
             new_embedding = self._exponential_moving_average_update(
                 current_embedding, weighted_embeddings
             )
+            
             new_embedding = self._apply_temporal_decay(db, user_id, new_embedding)
             # Normalize the embedding
+            
             new_embedding = self._normalize_embedding(new_embedding) 
-            update_user_embedding(db, user_id, new_embedding)
+  
+            
             
             self.logger.info(f"Updated embedding for user {user_id} with {len(paper_embeddings)} interactions")
             return new_embedding
@@ -87,8 +91,7 @@ class UserEmbeddingService:
         user_embedding = db.query(UserEmbedding).filter(
             UserEmbedding.user_id == user_id, 
         ).first()
-        
-        if user_embedding and user_embedding.embedding: 
+        if  user_embedding and user_embedding.embedding: 
             embedding_array = np.array(user_embedding.embedding)
             # Fixed: Ensure embedding has correct dimensions
             if embedding_array.shape[0] != self.embedding_dim:
@@ -96,6 +99,7 @@ class UserEmbeddingService:
                 return np.random.normal(0, 0.01, self.embedding_dim)
             return embedding_array
         else: 
+            
             return np.random.normal(0, 0.01, self.embedding_dim)
         
         
@@ -153,7 +157,6 @@ class UserEmbeddingService:
             ).first()
             
             if user_embedding_record and user_embedding_record.updated_at:
-                # Fixed: Better timezone handling
                 now = datetime.utcnow()
                 updated_at = user_embedding_record.updated_at
                 
@@ -413,12 +416,13 @@ def handle_paper_interaction(user_id: str, paper: Dict[str, str], interaction_ty
         
         # Update user embedding
         with get_db() as db:
-            embedding_service.update_user_embedding(
+            new_embedding = embedding_service.update_user_embedding(
                 db=db,
                 user_id=user_id,
                 paper_embeddings=[paper_embedding],
                 interaction_types=[interaction]
             )
+            update_user_embedding(db , user_id=user_id , new_paper_embedding=new_embedding)
             
     except Exception as e:
         logging.error(f"Error handling paper interaction: {str(e)}")

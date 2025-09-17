@@ -14,7 +14,7 @@ from agents.data.vector_db import PaperVectorStore
 from agents.data.indexing import FAISSIndex
 from agents.lib.chunker import TextChunker
 from backend.app.services.preprocessing import PaperPreprocessor
-from backend.app.services.db_service import insert_paper, get_db
+from backend.app.services.db_service import insert_paper, get_db , update_paper_like
 import requests
 import arxiv 
 from backend.app.models.paper import Paper
@@ -89,16 +89,11 @@ def process_paper(arxiv_id):
         processor = PaperPreprocessor(pdf_path, output_dir=processed_dir)
         result = processor.process()
         
-        return jsonify({
-            "message": "Paper processed successfully",
-            "paper_title": paper_title,
-            "raw_pdf_path": pdf_path,
-            "processed_dir": processed_dir,
-            "result": result
-        })
+        return result
         
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"error in processing paper {e}")
+        return None
     
 # ======================
 # Crawl agent
@@ -122,17 +117,21 @@ def crawl_papers():
         paper_store.store_papers(papers) 
         with get_db() as db:
             for paper in papers: 
-                insert_paper(
-                    db,
-                    id=paper["id"], 
-                    user_id=user_id,
-                    title=paper["title"],
-                    abstract=paper["summary"],
-                    authors=paper["authors"],
-                    categories=paper["categories"],
-                    source_url=paper["pdf_url"], 
-                    published_at=date.today()
-                )
+                url = paper["id"]
+                arxiv_id = url.split("/")[-1]
+                results = process_paper(arxiv_id)
+                if results : 
+                    insert_paper(
+                        db,
+                        id=paper["id"], 
+                        user_id=user_id,
+                        title=paper["title"],
+                        abstract=paper["summary"],
+                        authors=paper["authors"],
+                        categories=paper["categories"],
+                        source_url=paper["pdf_url"], 
+                        published_at=date.today()
+                    )
                 
         
         return jsonify({
@@ -216,7 +215,8 @@ def get_all_papers():
                     "authors": p.authors,        # already ARRAY
                     "categories": p.categories,  # already ARRAY
                     "url": p.url,
-                    "published": p.published.isoformat() if p.published else None
+                    "published": p.published.isoformat() if p.published else None , 
+                    "like": p.like
                 }
                 for p in papers
             ]
@@ -225,3 +225,31 @@ def get_all_papers():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+    
+# ===================
+# Like papeer endpoint 
+# ===================
+@paper_bp.route("/like_paper", methods=["POST"])
+def like_paper():
+    data = request.get_json()
+
+    paper_id = data.get("paper_id")
+    user_id = data.get("user_id")
+    like = data.get("like")
+
+    if paper_id is None or user_id is None or like is None:
+        return jsonify({"error": "Missing paper_id, user_id, or like"}), 400
+
+    with get_db() as db : 
+
+        paper = update_paper_like(db, paper_id, user_id, like)
+
+    if not paper:
+        return jsonify({"error": f"No paper found with id={paper_id} for user_id={user_id}"}), 404
+
+    return jsonify({
+        "message": "Paper updated successfully",
+        "paper_id": paper.id,
+        "like": paper.like
+    })

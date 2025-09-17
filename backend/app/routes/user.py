@@ -1,10 +1,11 @@
 from flask import Blueprint, request, jsonify
-from agents.data.embedding import handle_paper_interaction, get_paper_recommendations
+from agents.data.embedding import handle_paper_interaction, get_paper_recommendations 
 from backend.app.auth.auth_utils import hash_password, verify_password
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy.orm import Session
 from backend.app.database import SessionLocal
 from backend.app.models import User
+from backend.app.services.db_service import update_paper_like , get_db
 # Create Blueprint
 user_bp = Blueprint("user_api", __name__, url_prefix="/api/user")
 
@@ -47,7 +48,16 @@ def paper_interaction():
         user_id = data.get('user_id')
         paper = data.get('paper')
         interaction = data.get('interaction')  # "LIKE" or "DISLIKE"
-        
+        if interaction == "LIKE" : 
+            like = True 
+        else : 
+            like = False 
+            
+        with get_db() as db : 
+            paper_with_like = update_paper_like(db , paper['id'] , user_id , like)
+            
+        if not paper_with_like : 
+            return jsonify({"error": f"error to like this paper {paper}"})
         if not all([user_id, paper, interaction]):
             return jsonify({"error": "user_id, paper, and interaction are required"}), 400
         
@@ -94,7 +104,7 @@ def register():
 
     return jsonify({"id": new_user.id, "email": new_user.email, "name": new_user.name}), 201
 
-
+from datetime import timedelta
 # ===========================
 # Login endpoint
 # ===========================
@@ -109,7 +119,7 @@ def login():
     if not user or not verify_password(password, user.password):
         return jsonify({"error": "Invalid credentials"}), 401
 
-    token = create_access_token(identity=user.id)
+    token = create_access_token(identity=str(user.id) , expires_delta=timedelta(days=2))
     return jsonify({"token": token, "token_type": "bearer" , "id" : user.id})
 
 

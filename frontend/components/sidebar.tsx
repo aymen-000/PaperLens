@@ -64,13 +64,6 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
 
       <div className="mt-auto p-3 md:p-6">
         <div className="hidden md:block mb-4">
-          <div className="bg-sidebar-accent/20 rounded-lg p-4 mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-sidebar-accent" />
-              <span className="text-sm font-medium text-sidebar-foreground">Today's Stats</span>
-            </div>
-            <p className="text-xs text-sidebar-foreground/70">12 new papers • 3 liked</p>
-          </div>
 
           <div className="flex items-center gap-2 mb-3 p-2 bg-sidebar-accent/10 rounded-lg">
             <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">

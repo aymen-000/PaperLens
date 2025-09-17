@@ -86,4 +86,4 @@ class PaperPreprocessor:
     pdf_path = "storage/raw/Whats_Left_Concept_Grounding.pdf"  
     processor = PaperPreprocessor(pdf_path)
     result = processor.process()
-    print(result) """
+    print(result)  """

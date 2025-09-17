@@ -1,208 +1,396 @@
-#  ArXiv Intelligent Paper Assistant (PaperLens)
+# 🔬 ArXiv PaperLens: Intelligent Research Paper Discovery System
 
-A comprehensive RAG (Retrieval-Augmented Generation) system that crawls ArXiv papers, learns user preferences, and provides intelligent paper recommendations with multimodal Q&A capabilities.
+<div align="center">
 
-##  Features
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
-- **Daily ArXiv Crawling**: Automatically fetch papers based on user interests
-- **Intelligent Recommendations**: Machine learning-powered paper suggestions
-- **Multimodal RAG**: Chat with papers using text and images via Gemini Pro
-- **User Interaction Tracking**: Like, dislike, save, and delete papers
-- **Multi-Channel Notifications**: Email and Telegram integration
-- **Vector Search**: FAISS-powered semantic search across papers
-- **Personalized Experience**: Adaptive recommendations based on user feedback
+[![React](https://img.shields.io/badge/React-18.0+-61dafb.svg)](https://reactjs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-##  Architecture
+*An AI-powered research assistant that learns your preferences and delivers personalized ArXiv paper recommendations*
+
+[📺 Demo Video](/demo/demo.mkv) 
+</div>
+
+---
+
+## 🌟 Overview
+
+**ArXiv PaperLens** is a sophisticated RAG (Retrieval-Augmented Generation) system that revolutionizes how researchers discover and interact with academic papers. Using advanced machine learning techniques, it creates personalized research experiences by understanding user preferences through implicit and explicit feedback mechanisms.
+
+### ✨ Key Features
+
+- 🤖 **Intelligent Paper Discovery**: Daily ArXiv crawling with ML-powered recommendations
+- 🧠 **Multimodal RAG Chat**: Converse with papers using text and images via Google Gemini Pro
+- 📊 **Advanced User Profiling**: Dynamic embedding updates using exponential moving average algorithms
+- 🎯 **Personalized Recommendations**: Adaptive scoring system based on user interaction patterns
+- 🔍 **Semantic Search**: FAISS-powered vector similarity search across 100k+ papers
+- 📱 **Multi-Channel Notifications**: Email digests and Telegram bot integration
+- 🎨 **Modern UI**: Responsive React frontend with real-time interactions
+
+## 🏗️ System Architecture
+
+```mermaid
+graph TB
+    subgraph "Data Layer"
+        A[ArXiv API] --> B[Daily Crawler Agent]
+        B --> C[PDF Processing]
+        C --> D[Text & Image Extraction]
+        D --> E[Vector Database<br/>FAISS Index]
+    end
+    
+    subgraph "AI Layer"
+        F[Multimodal Embedder<br/>CLIP + BGE] --> G[User Embedding Service]
+        G --> H[Recommendation Engine<br/>Exponential Moving Average]
+        I[Gemini Pro RAG Agent] --> J[Multimodal Q&A]
+    end
+    
+    subgraph "Application Layer"
+        K[Backend] --> L[React Frontend]
+        M[LangGraph Agents] --> N[Notification Service<br/>Email + Telegram (in the future)]
+    end
+    
+    E --> I
+    E --> H
+    G --> K
+    H --> K
+    J --> L
+    N --> L
+```
+
+## 🧮 Mathematical Foundation
+
+### User Embedding Update Algorithm
+
+The system employs an **Exponential Moving Average (EMA)** approach for updating user embeddings:
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   ArXiv API     │───▶│  Daily Crawler  │───▶│   Vector DB     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │                       │
-                                ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ Email/Telegram  │◀───│  Notification   │    │  RAG System     │
-│   Notifications │    │    Service      │    │ (Gemini Pro)    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                                       │
-                                                       ▼
-                              ┌─────────────────┐    ┌─────────────────┐
-                              │  User Feedback  │◀───│   Frontend UI   │
-                              │    Learning     │    │                 │
-                              └─────────────────┘    └─────────────────┘
+E_new = (1 - α) × E_current + α × E_weighted_papers
 ```
 
-## 📦 Installation
+Where:
+- `α`: Learning rate (default: 0.1)
+- `E_weighted_papers`: Weighted average of paper embeddings based on interaction types
+- Interaction weights: Like(+1.0), Bookmark(+0.8), Share(+0.6), View(+0.1), Dislike(-0.5), Delete(-0.9)
+
+### Temporal Decay Mechanism
+
+```
+E_decayed = E × (decay_factor^(days_since_update/30))
+```
+
+This ensures recent preferences have higher influence while preventing embedding staleness.
+
+### Relevance Scoring
+
+Paper relevance is computed using cosine similarity:
+
+```
+relevance = (cosine_similarity(E_user, E_paper) + 1) / 2
+```
+
+Normalized to [0,1] range for intuitive scoring.
+
+## 🚀 Quick Start
 
 ### Prerequisites
+
 - Python 3.9+
-- Docker (optional)
-- Google API Key (for Gemini)
-- Telegram Bot Token (optional)
+- Node.js 16+ (for React frontend)
+- Google API Key (Gemini Pro)
+- PostgreSQL (for metadata storage)
+- Docker (optional deployment)
 
-### Setup
+### Installation
 
-1. **Clone the repository**
+1. **Clone and Setup**
    ```bash
-   git clone <repo-url>
-   cd arxiv-rag-system
-   ```
-
-2. **Install dependencies**
-   ```bash
-   # Using uv (recommended)
-   uv sync
+   git clone https://github.com/aymen-000/Paperlens
+   cd Paperlans
    
-   # Or using pip
+   # Install Python dependencies
    pip install -r requirements.txt
+   # or using uv (recommended)
+   uv sync
    ```
 
-3. **Environment variables**
+2. **Environment Configuration**
    ```bash
-   export GOOGLE_API_KEY="your-gemini-api-key"
-   export TELEGRAM_BOT_TOKEN="your-bot-token"  # optional
-   export EMAIL_PASSWORD="your-email-password"  # optional
+   # Create .env file
+   cat > .env << EOF
+   GOOGLE_API_KEY = "your_key"
+   CRAWLER_AGENT_MODEL_ID="gemini-2.5-flash"
+   PROVIDER = "langchain_google_genai.ChatGoogleGenerativeAI"
+   HUGGINGFACE_TOKEN_KEY = "your_token"
+   JWT_SECRET_KEY = "your_key"
    ```
 
-4. **Initialize database**
+3. **Database Initialization**
    ```bash
    python scripts/init_db.py
    python scripts/seed_user.py
    ```
 
-##  Quick Start
-
-1. **Start the crawler** (runs daily)
+4. **Start Services**
    ```bash
-   python scripts/run_agents.py
+   # Terminal 1: Backend API
+   source .venv/bin/activate
+   export PYTHONAPATH=.
+   python3 backend/app/app.py
+   
+   # Terminal 2: Frontend (separate terminal)
+   npm install 
+   npm run dev
+   
    ```
 
-2. **Launch the backend**
-   ```bash
-   cd backend
-   python -m app.main
-   ```
+5. **Access Application**
+   - Frontend: http://localhost:3000
+   - Health Check: http://localhost:8000/health
 
-3. **Interact with papers**
-   ```python
-   from agents.system_agents.papers_rag import GeminiProAgent, ScientificPaperRetriever
-   
-   # Initialize RAG system
-   retriever = ScientificPaperRetriever()
-   agent = GeminiProAgent(api_key="your-key")
-   
-   # Ask questions about papers
-   query = "What are the main contributions of this paper?"
-   results = retriever.retrieve_all(query, text_top_k=5, image_top_k=3)
-   response = agent.generate_response(query, results)
-   
-   print(response["answer"])
-   ```
+## 🛠️ Technology Stack
 
-##  Project Structure
+### Backend
+- **Flask**: High-performance async web framework
+- **LangChain**: LLM orchestration and document processing
+- **LangGraph**: Agent workflow management
+- **FAISS**: Vector similarity search (Facebook AI)
+- **PostgreSQL**: Metadata and user data storage
+- **SQLAlchemy**: Database ORM
+
+### AI/ML Components
+- **Google Gemini Pro**: Multimodal language model
+- **CLIP (OpenAI)**: Image-text understanding
+- **BGE Embeddings**: Semantic text embeddings
+- **Sentence Transformers**: Text encoding
+- **PyTorch**: Deep learning framework
+
+### Frontend
+- **React**: Modern UI framework
+- **Tailwind CSS**: Utility-first styling
+- **Axios**: HTTP client
+
+
+## 📊 Project Structure
 
 ```
-├── agents/                 # Core AI agents
-│   ├── system_agents/     # Main system agents
-│   │   ├── crawler.py     # ArXiv paper crawler
-│   │   └── papers_rag.py  # Multimodal RAG system
-│   ├── data/              # Data processing & embeddings
-│   ├── tools/             # Utility tools
-│   └── prompts/           # LLM prompts
-├── backend/               # FastAPI backend
+Paperlens/
+├── agents/                           # 🤖 AI Agent System
+│   ├── system_agents/               # Core intelligent agents
+│   │   ├── crawler.py              # ArXiv paper crawler
+│   │   └── papers_rag.py           # Multimodal RAG system
+│   ├── data/                       # Data processing & embeddings
+│   │   ├── embedding.py            # User embedding service
+│   │   ├── indexing.py             # Vector indexing
+│   │   └── vector_db.py            # FAISS operations
+│   ├── tools/                      # Agent utility tools
+│   │   ├── crawler_tools.py        # PDF processing tools
+│   │   └── rag_tools.py            # RAG helper functions
+│   ├── prompts/                    # LLM prompt templates
+│   └── config.py                   # Agent configurations
+│
+├── backend/                          # ⚡ FastAPI Application
 │   └── app/
-│       ├── models/        # Database models
-│       ├── routes/        # API endpoints
-│       └── services/      # Business logic
-├── faiss_index/          # Vector database indices
-├── storage/              # Paper storage
-│   ├── raw/              # Original PDFs
-│   └── processed/        # Extracted text & images
-└── scripts/              # Utility scripts
+│       ├── models/                 # Database models
+│       │   ├── user.py             # User profiles
+│       │   ├── paper.py            # Paper metadata
+│       │   ├── user_embedding.py   # User preference vectors
+│       │   └── user_feedback.py    # Interaction tracking
+│       ├── routes/                 # API endpoints
+│       │   ├── papers_api.py       # Paper CRUD operations
+│       │   ├── papers_bot.py       # RAG chat endpoints
+│       │   └── user.py             # User management
+│       ├── services/               # Business logic
+│       │   ├── db_service.py       # Database operations
+│       │   └── handle_interaction.py # User feedback processing
+│       └── database.py             # SQLAlchemy setup
+│
+├── frontend/                         # 🎨 Next.js Application
+│   ├── app/                        # Next.js App Router
+│   │   ├── page.tsx                # Dashboard homepage
+│   │   ├── login/                  # Authentication pages
+│   │   └── signup/
+│   ├── components/                 # UI components
+│   │   ├── paper-feed.tsx          # Paper recommendation feed
+│   │   ├── rag-panel.tsx           # Chat interface
+│   │   ├── paper-search.tsx        # Search functionality
+│   │   ├── settings-page.tsx       # User preferences
+│   │   └── ui/                     # Shadcn/UI components
+│   └── lib/                        # Utilities & API clients
+│
+├── faiss_index/                      # 🔍 Vector Database
+│   ├── text_index.faiss            # Text embeddings (BGE)
+│   ├── image_index.faiss           # Image embeddings (CLIP)
+│   └── faiss_index/                # Legacy unified index
+│
+├── storage/                          # 📁 File Storage
+│   ├── raw/                        # Original PDF papers
+│   ├── processed/                  # Extracted content
+│   │   ├── images/                 # Figures & diagrams
+│   │   └── paper_*/                # Per-paper text & images
+│   └── papers/                     # Downloaded PDFs
+│
+└── scripts/                          # 🛠️ Utility Scripts
+    ├── init_db.py                  # Database initialization
+    ├── seed_user.py                # Sample user creation
+    └── run_agents.py               # Agent orchestration
 ```
 
+## 🤖 Intelligent Agents
+
+### 1. **ArXiv Crawler Agent**
+- **Purpose**: Automated daily paper discovery
+- **Capabilities**: 
+  - Fetches 50+ papers daily based on user categories
+  - PDF text extraction using PyPDF2
+  - Figure/diagram extraction using PIL
+  - Metadata enrichment and storage
+
+### 2. **Multimodal RAG Agent**
+- **Purpose**: Intelligent Q&A over research papers
+- **Capabilities**:
+  - Text-based semantic search
+  - Image understanding and analysis
+  - Context-aware response generation
+  - Source attribution and citation
+
+### 3. **User Learning Agent**
+- **Purpose**: Preference modeling and adaptation
+- **Capabilities**:
+  - Real-time embedding updates
+  - Interaction pattern analysis
+  - Cold-start problem handling
+  - Temporal preference drift detection
+
+### 4. **Recommendation Engine**
+- **Purpose**: Personalized content delivery
+- **Capabilities**:
+  - Multi-factor scoring algorithms
+  - Diversity-aware recommendations
+  - Category-based filtering
+  - Performance analytics
 
 
-## 🤖 Available Agents
+## 🔧 Advanced Configuration
 
-### 1. ArXiv Crawler
-- Fetches papers daily based on user interests
-- Processes PDFs and extracts text/images
-- Updates vector database with new embeddings
+### Custom Categories and Weights
 
-### 2. RAG Assistant
-- Answers questions using retrieved context
-- Supports both text and image understanding
-- Powered by Google's Gemini Pro model
-
-### 3. Recommendation Engine
-- Learns from user interactions (likes/dislikes)
-- Provides personalized paper suggestions
-- Adapts over time based on feedback
-
-## 📊 Features in Detail
-
-### Multimodal RAG
-- **Text Retrieval**: Semantic search through paper content
-- **Image Understanding**: Process figures, charts, and diagrams
-- **Context-Aware**: Combines visual and textual information
-- **Citation Support**: References sources in responses
-
-### User Learning
-- **Implicit Feedback**: Tracks reading time, interactions
-- **Explicit Feedback**: Likes, dislikes, saves, deletes
-- **Preference Evolution**: Updates user profiles over time
-- **Cold Start**: Handles new users with category-based recommendations
-
-### Notification System
-- **Email Digest**: Daily/weekly paper summaries
-- **Telegram Bot**: Real-time paper alerts
-- **Customizable**: User-controlled frequency and topics
-
-## 🛠️ Development
-
-### Running Tests
-```bash
-python -m pytest agents/test/
+```python
+# User category preferences with weights
+CATEGORY_WEIGHTS = {
+    "cs.AI": 0.2,          # Artificial Intelligence
+    "cs.LG": 0.2,          # Machine Learning  
+    "cs.CV": 0.2,          # Computer Vision
+    "stat.ML": 0.4,        # Statistics ML
+}
 ```
-
-### Adding New Features
-1. Create new agents in `agents/system_agents/`
-2. Add database models in `backend/app/models/`
-3. Implement API endpoints in `backend/app/routes/`
-4. Update configuration in `agents/config.py`
-
-### Docker Deployment
-```bash
-docker build -t arxiv-rag .
-docker run -p 8000:8000 arxiv-rag
-```
-
-## 📈 Performance
-
-- **Vector Search**: Sub-second retrieval with FAISS
-- **Daily Processing**: 50+ papers in < 5 minutes
-- **Multimodal QA**: ~2-3 seconds response time
-- **Storage**: Efficient PDF processing and compression
 
 ## 🤝 Contributing
 
+We welcome contributions!
+
+### Development Workflow
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Make changes with tests
+4. Commit with conventional commits (`feat:`, `fix:`, `docs:`)
+5. Push and create Pull Request
+
+### Areas for Contribution
+- 🔍 New embedding models integration
+- 📊 Advanced analytics dashboards
+- 🌐 Multi-language support
+- ⚡ Performance optimizations
+- 🎨 UI/UX improvements
+- 🔍 User feedbacks 
+- 🔍 notification channels
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙋‍♂️ Support
+## 🙏 Acknowledgments
 
-- Create an issue for bug reports or feature requests
-- Check existing issues before creating new ones
-- Provide detailed information for faster resolution
+- **ArXiv** for providing open access to research papers
+- **Google** for Gemini Pro API access
+- **Hugging Face** for transformer models and embeddings
+- **Facebook AI** for FAISS vector search
+- **OpenAI** for CLIP multimodal understanding
+
+## 🔮 Future Enhancements
+
+### 🎯 Roadmap 
+
+#### **Advanced Recommendation System**
+- **🎰 Reinforcement Learning Recommender**
+  - Multi-Armed Bandit algorithms for exploration vs exploitation
+  - Deep Q-Network (DQN) for long-term user engagement optimization
+  - Contextual bandits considering user state, time, and reading patterns
+  - A/B testing framework for recommendation strategy evaluation
+
+#### **Enhanced User Feedback & Analytics**
+- **📊 Rich Feedback Mechanisms**
+  - Star ratings and detailed paper reviews
+  - Reading time tracking and attention heatmaps
+  - Bookmark organization with custom tags and collections
+  - Social features: following researchers, sharing reading lists
+  - Citation network analysis for impact-based recommendations
+
+- **🔬 Advanced Analytics Dashboard**
+  - Personal research journey visualization
+  - Topic evolution and trend analysis
+  - Collaboration opportunity detection
+  - Research gap identification using knowledge graphs
+
+#### **Multi-Source Content Aggregation**
+- **🌐 Diversified Content Sources**
+  - **LinkedIn Research Posts**: Professional insights and industry research
+  - **Twitter/X Academic Threads**: Real-time research discussions and preprints
+  - **Google Scholar**: Citation networks and h-index tracking
+  - **Research Gate**: Social academic networking integration
+  - **Medium/Towards Data Science**: Practical implementations and tutorials
+  - **GitHub Research Repos**: Code implementations and reproducible research
+
+- **📡 Social Media Intelligence**
+  - Tweet sentiment analysis for trending topics
+  - LinkedIn post engagement metrics
+  - Research influencer identification
+  - Conference hashtag monitoring (#NeurIPS2024, #ICML2024)
+
+#### **Phase 4: AI-Powered Research Assistant**
+- **🤖 Advanced AI Capabilities**
+  - Literature gap analysis using LLMs
+  - Automated research proposal generation
+  - Cross-paper concept linking and knowledge graphs
+  - Research methodology recommendations
+  - Collaborative filtering with similar researchers
+
+- **🔗 Research Workflow Integration**
+  - Zotero/Mendeley synchronization
+  - LaTeX reference management
+  - Notion/Obsidian knowledge base integration
+  - Calendar integration for reading schedules
+  - Email digest with personalized research summaries
+
+
+
 
 ---
 
+## 📞 Support & Contact
+
+- 🐛 **Issues**: [GitHub Issues](https://github.com/ayemn-000/Paperlens/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/ayemn-000/Paperlens/discussions)
+- 📧 **Email**: aymne011@gmail.com
+
+---
+
+<div align="center">
+
 **Built with ❤️ for the research community**
+
+*Making academic research discovery intelligent, personalized, and delightful*
+
+[⬆ Back to Top](#-arxiv-paperlens-intelligent-research-paper-discovery-system)
+
+</div>

@@ -73,17 +73,28 @@ def insert_paper(db, id: str, user_id: int, title: str, abstract: str,
         return db.query(Paper).filter_by(id=id).first()
 
 def get_embedding(db, user_id: str):
-    """Return UserEmbedding row for the given user_id."""
+    """Return UserEmbedding row for the given user_id, or None if not found."""
     return db.query(UserEmbedding).filter(UserEmbedding.user_id == user_id).first()
 
-def update_user_embedding(db , user_id: str, new_paper_embedding: np.ndarray):
+
+def update_user_embedding(db, user_id: str, new_paper_embedding: np.ndarray):
     """
-    Blend old embedding with new paper embedding.
+    Blend old embedding with new paper embedding, or create a new one if none exists.
     """
     row = get_embedding(db, user_id=user_id)
-    row.embedding = new_paper_embedding.tolist()
+
+    if row is None:
+
+        row = UserEmbedding(
+            user_id=user_id,
+            embedding=new_paper_embedding.tolist()
+        )
+        db.add(row)
+    else:
+        row.embedding = new_paper_embedding.tolist()
 
     db.commit()
+    db.refresh(row)  
 
     
     
@@ -181,3 +192,78 @@ def insert_chat_history(
     db.commit()
     db.refresh(chat_entry)
     return chat_entry
+
+
+
+
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import NoResultFound
+from backend.app.models import Paper  # adjust import to your path
+
+def update_paper_like(db: Session, paper_id: str, user_id: str, like: bool) -> Paper:
+    """
+    Update the 'like' field of a paper for a given user.
+
+    Args:
+        db (Session): SQLAlchemy database session
+        paper_id (str): ID of the paper
+        user_id (str): ID of the user (to ensure ownership)
+        like (bool): New value for the 'like' field
+
+    Returns:
+        Paper: The updated paper object
+    """
+    try:
+        paper = db.query(Paper).filter(
+            Paper.id == paper_id,
+            Paper.user_id == user_id
+        ).one()
+
+        paper.like = like
+        db.commit()
+        db.refresh(paper)
+        return paper
+
+    except NoResultFound:
+        raise ValueError(f"No paper found with id={paper_id} for user_id={user_id}")
+
+
+
+
+# ================
+# user intrestes 
+# ================
+
+
+
+def update_user_category_preferences(db: Session, user_id: int, categories: dict):
+    """
+    Update or create category preferences.
+    categories: dict like {"AI": 0.9, "ML": 0.7}
+    """
+    prefs = db.query(UserPreferences).filter(UserPreferences.user_id == user_id).first()
+    
+    if prefs is None:
+        # create user preferences if not exist
+        prefs = UserPreferences(user_id=user_id)
+        db.add(prefs)
+        db.commit()
+        db.refresh(prefs)
+
+    for category, weight in categories.items():
+        # Check if category exists
+        cat_pref = (
+            db.query(UserCategoryPreference)
+            .filter(UserCategoryPreference.user_id == user_id, UserCategoryPreference.category == category)
+            .first()
+        )
+        if cat_pref:
+            cat_pref.weight = weight
+        else:
+            new_cat_pref = UserCategoryPreference(
+                user_id=user_id, category=category, weight=weight
+            )
+            db.add(new_cat_pref)
+
+    db.commit()
+    return db.query(UserCategoryPreference).filter(UserCategoryPreference.user_id == user_id).all()

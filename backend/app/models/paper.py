@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Text, String, ARRAY, Date, ForeignKey
+from sqlalchemy import Column, Text, String, ARRAY, Date, ForeignKey , Boolean
 from sqlalchemy.orm import relationship
 from backend.app.database import Base
 
@@ -13,7 +13,7 @@ class Paper(Base):
     categories = Column(ARRAY(String))
     published = Column(Date, nullable=False)
     url = Column(String, nullable=False)
-
+    like = Column(Boolean , default=False)
     # --- foreign key to users table ---
     user_id = Column(String, ForeignKey("users.id" ,  ondelete="CASCADE"), nullable=False)
 

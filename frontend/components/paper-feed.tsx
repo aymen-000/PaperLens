@@ -34,33 +34,7 @@ export function PaperFeed({ onPaperSelect }: PaperFeedProps) {
       setPapers(fetchedPapers)
     } catch (error) {
       console.error("Failed to load papers:", error)
-      const mockPapers: Paper[] = [
-        {
-          id: "1",
-          user_id: "123",
-          title: "Attention Is All You Need: Revisiting Transformer Architectures for Scientific Text Analysis",
-          authors: ["John Smith", "Jane Doe", "Bob Johnson"],
-          abstract:
-            "We present a comprehensive analysis of transformer architectures applied to scientific text processing...",
-          published_at: "2025-01-15",
-          categories: ["deep learning"],
-          source_url: "http://arxiv.org/pdf/2401.12345",
-          liked: false,
-        },
-        {
-          id: "2",
-          user_id: "123",
-          title: "Quantum Computing Applications in Molecular Dynamics Simulations",
-          authors: ["Alice Chen", "David Wilson"],
-          abstract:
-            "This paper explores the potential of quantum computing algorithms for accelerating molecular dynamics simulations...",
-          published_at: "2025-01-14",
-          categories: ["quantum physics"],
-          source_url: "http://arxiv.org/pdf/2401.12346",
-          liked: true,
-        },
-      ]
-      setPapers(mockPapers)
+      setPapers([])
     } finally {
       setLoading(false)
     }
@@ -73,7 +47,7 @@ export function PaperFeed({ onPaperSelect }: PaperFeedProps) {
         const categories = paper?.categories || []
         await paperAPI.likePaper(paperId, action === "like", categories)
         setPapers((prev) =>
-          prev.map((paper) => (paper.id === paperId ? { ...paper, liked: action === "like" } : paper)),
+          prev.map((paper) => (paper.id === paperId ? { ...paper, like: action === "like" } : paper)),
         )
       } else if (action === "delete") {
         await paperAPI.deletePaper(paperId)
@@ -111,8 +85,8 @@ export function PaperFeed({ onPaperSelect }: PaperFeedProps) {
   }
 
   const filteredPapers = papers.filter((paper) => {
-    if (filter === "liked" && !paper.liked) return false
-    if (filter === "recent" && new Date(paper.published_at) <= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+    if (filter === "liked" && !paper.like) return false
+    if (filter === "recent" && new Date(paper.published) <= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
       return false
 
     if (searchQuery) {

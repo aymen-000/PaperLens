@@ -65,7 +65,7 @@ def fetch_recent_papers(query: str) -> List[Dict]:
         client = arxiv.Client()
         search = arxiv.Search(
             query=query,
-            max_results=30,
+            max_results=2,
             sort_by=arxiv.SortCriterion.SubmittedDate
         )
         

@@ -36,9 +36,9 @@ export interface Paper {
   authors: string[]
   abstract: string
   categories: string[]
-  source_url: string
-  published_at: string
-  liked?: boolean
+  url: string
+  published: string
+  like?: boolean
 }
 
 export interface User {
@@ -78,10 +78,10 @@ const mockPapers: Paper[] = [
     authors: ["John Smith", "Jane Doe", "Bob Johnson"],
     abstract:
       "We present a comprehensive analysis of transformer architectures applied to scientific text processing. Our findings demonstrate significant improvements in understanding complex academic literature through attention mechanisms...",
-    published_at: "2025-01-15",
+    published: "2025-01-15",
     categories: ["deep learning"],
-    source_url: "http://arxiv.org/pdf/2401.12345",
-    liked: false,
+    url: "http://arxiv.org/pdf/2401.12345",
+    like: false,
   },
   {
     id: "paper456",
@@ -90,10 +90,10 @@ const mockPapers: Paper[] = [
     authors: ["Alice Chen", "David Wilson"],
     abstract:
       "This paper explores the potential of quantum computing algorithms for accelerating molecular dynamics simulations. We propose novel quantum circuits that can efficiently model complex molecular interactions...",
-    published_at: "2025-01-14",
+    published: "2025-01-14",
     categories: ["quantum physics"],
-    source_url: "http://arxiv.org/pdf/2401.12346",
-    liked: true,
+    url: "http://arxiv.org/pdf/2401.12346",
+    like: true,
   },
   {
     id: "paper789",
@@ -102,10 +102,10 @@ const mockPapers: Paper[] = [
     authors: ["Sarah Martinez", "Michael Brown", "Lisa Wang"],
     abstract:
       "We investigate the application of deep learning techniques to improve climate change prediction accuracy. Our model incorporates multiple data sources and demonstrates superior performance...",
-    published_at: "2025-01-13",
+    published: "2025-01-13",
     categories: ["machine learning"],
-    source_url: "http://arxiv.org/pdf/2401.12347",
-    liked: false,
+    url: "http://arxiv.org/pdf/2401.12347",
+    like: false,
   },
 ]
 
@@ -129,10 +129,11 @@ const mockUser: User = {
 }
 
 const simulateDelay = (ms = 800) => new Promise((resolve) => setTimeout(resolve, ms))
-
+// =====================
 // Paper API endpoints
+// =====================
 export const paperAPI = {
-  // Matches: POST /api/papers/load_papers?user_id=<user_id>
+
   getPersonalizedPapers: async (filters?: { category?: string; recent?: boolean }) => {
     const userId = getUserId()
     if (!userId) throw new Error("User not authenticated")
@@ -141,20 +142,19 @@ export const paperAPI = {
     return response.data
   },
 
-  // Matches: POST /api/users/paper-interaction
-  likePaper: async (paperId: string, liked: boolean, categories: string[]) => {
+
+  likePaper: async (paperId: string, liked: boolean , categories: string[]) => {
     const userId = getUserId()
     if (!userId) throw new Error("User not authenticated")
 
-    const response = await api.post("/api/users/paper-interaction", {
+    const response = await api.post("/api/user/paper-interaction", {
       user_id: userId,
-      paper: { id: paperId, categories },
+      paper: { "id": paperId,"categories" : categories },
       interaction: liked ? "LIKE" : "DISLIKE",
     })
     return response.data
   },
 
-  // Note: Delete functionality not in API docs - keeping as placeholder
   deletePaper: async (paperId: string) => {
     if (USE_MOCK_DATA) {
       await simulateDelay(300)
@@ -163,11 +163,9 @@ export const paperAPI = {
       return { success: true }
     }
 
-    // TODO: Add delete endpoint to your Flask backend if needed
     throw new Error("Delete functionality not implemented in API")
   },
 
-  // Matches: POST /api/papers/crawl-papers
   refreshPapers: async () => {
     if (USE_MOCK_DATA) {
       await simulateDelay(1000)
@@ -183,7 +181,6 @@ export const paperAPI = {
     return response.data
   },
 
-  // Health check endpoint
   healthCheck: async () => {
     if (USE_MOCK_DATA) {
       await simulateDelay(200)
@@ -195,24 +192,12 @@ export const paperAPI = {
   },
 }
 
+
+
 // RAG API endpoints
 export const ragAPI = {
   // Matches: POST /api/bot/paper_chat
   askQuestion: async (question: string, paperId?: string, threadId?: string) => {
-    if (USE_MOCK_DATA) {
-      await simulateDelay(1500)
-      return {
-        success: true,
-        response: {
-          answer: `Based on the research papers, I can provide insights about your question: "${question}". The studies demonstrate significant findings in this area, with methodological approaches that highlight key implications for the field. The evidence suggests strong correlations and potential applications for future research.`,
-          sources: [
-            { paper_id: paperId || "1", title: "Section 3.2", relevance_score: 0.95 },
-            { paper_id: paperId || "1", title: "Figure 2", relevance_score: 0.87 },
-            { paper_id: paperId || "1", title: "Table 1", relevance_score: 0.82 },
-          ],
-        },
-      }
-    }
 
     const userId = getUserId()
     if (!userId) throw new Error("User not authenticated")
@@ -228,10 +213,7 @@ export const ragAPI = {
 
   // Matches: GET /api/bot/chat-history
   getChatHistory: async (paperId?: string) => {
-    if (USE_MOCK_DATA) {
-      await simulateDelay()
-      return { success: true, count: 0, history: [] }
-    }
+
 
     const userId = getUserId()
     if (!userId) throw new Error("User not authenticated")
