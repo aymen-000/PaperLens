@@ -105,7 +105,7 @@ Normalized to [0,1] range for intuitive scoring.
 
 1. **Clone and Setup**
    ```bash
-   git clone https://github.com/aymen-000/Paperlens
+   git clone https://github.com/aymen-000/PaperLens
    cd Paperlans
    
    # Install Python dependencies
@@ -379,8 +379,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support & Contact
 
-- 🐛 **Issues**: [GitHub Issues](https://github.com/ayemn-000/PaperLens/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/ayemn-000/PaperLens/discussions)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/aymen-000/PaperLens/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/aymen-000/PaperLens/discussions)
 - 📧 **Email**: aymne011@gmail.com
 
 ---
