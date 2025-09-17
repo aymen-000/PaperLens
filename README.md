@@ -379,8 +379,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support & Contact
 
-- 🐛 **Issues**: [GitHub Issues](https://github.com/ayemn-000/Paperlens/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/ayemn-000/Paperlens/discussions)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/ayemn-000/PaperLens/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/ayemn-000/PaperLens/discussions)
 - 📧 **Email**: aymne011@gmail.com
 
 ---
