@@ -9,26 +9,26 @@
 
 *An AI-powered research assistant that learns your preferences and delivers personalized ArXiv paper recommendations*
 
-[📺 Demo Video](/demo/demo.mkv) 
+[ Demo Video](/demo/demo.mkv) 
 </div>
 
 ---
 
-## 🌟 Overview
+##  Overview
 
 **ArXiv PaperLens** is a sophisticated RAG (Retrieval-Augmented Generation) system that revolutionizes how researchers discover and interact with academic papers. Using advanced machine learning techniques, it creates personalized research experiences by understanding user preferences through implicit and explicit feedback mechanisms.
 
-### ✨ Key Features
+###  Key Features
 
-- 🤖 **Intelligent Paper Discovery**: Daily ArXiv crawling with ML-powered recommendations
-- 🧠 **Multimodal RAG Chat**: Converse with papers using text and images via Google Gemini Pro
-- 📊 **Advanced User Profiling**: Dynamic embedding updates using exponential moving average algorithms
-- 🎯 **Personalized Recommendations**: Adaptive scoring system based on user interaction patterns
-- 🔍 **Semantic Search**: FAISS-powered vector similarity search across 100k+ papers
-- 📱 **Multi-Channel Notifications**: Email digests and Telegram bot integration
-- 🎨 **Modern UI**: Responsive React frontend with real-time interactions
+-  **Intelligent Paper Discovery**: Daily ArXiv crawling with ML-powered recommendations
+-  **Multimodal RAG Chat**: Converse with papers using text and images via Google Gemini Pro
+-  **Advanced User Profiling**: Dynamic embedding updates using exponential moving average algorithms
+-  **Personalized Recommendations**: Adaptive scoring system based on user interaction patterns
+-  **Semantic Search**: FAISS-powered vector similarity search across 100k+ papers
+-  **Multi-Channel Notifications**: Email digests and Telegram bot integration
+-  **Modern UI**: Responsive React frontend with real-time interactions
 
-## 🏗️ System Architecture
+##  System Architecture
 
 ```mermaid
 graph TB
@@ -58,9 +58,9 @@ graph TB
     N --> L
 ```
 
-## 🧮 Mathematical Foundation
+##  Mathematical Foundation
 
-### User Embedding Update Algorithm
+## User Embedding Update Algorithm
 
 The system employs an **Exponential Moving Average (EMA)** approach for updating user embeddings:
 
@@ -91,7 +91,7 @@ relevance = (cosine_similarity(E_user, E_paper) + 1) / 2
 
 Normalized to [0,1] range for intuitive scoring.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -148,7 +148,7 @@ Normalized to [0,1] range for intuitive scoring.
    - Frontend: http://localhost:3000
    - Health Check: http://localhost:8000/health
 
-## 🛠️ Technology Stack
+##  Technology Stack
 
 ### Backend
 - **Flask**: High-performance async web framework
@@ -171,11 +171,11 @@ Normalized to [0,1] range for intuitive scoring.
 - **Axios**: HTTP client
 
 
-## 📊 Project Structure
+##  Project Structure
 
 ```
 Paperlens/
-├── agents/                           # 🤖 AI Agent System
+├── agents/                           #  AI Agent System
 │   ├── system_agents/               # Core intelligent agents
 │   │   ├── crawler.py              # ArXiv paper crawler
 │   │   └── papers_rag.py           # Multimodal RAG system
@@ -189,7 +189,7 @@ Paperlens/
 │   ├── prompts/                    # LLM prompt templates
 │   └── config.py                   # Agent configurations
 │
-├── backend/                          # ⚡ FastAPI Application
+├── backend/                          #  FastAPI Application
 │   └── app/
 │       ├── models/                 # Database models
 │       │   ├── user.py             # User profiles
@@ -205,7 +205,7 @@ Paperlens/
 │       │   └── handle_interaction.py # User feedback processing
 │       └── database.py             # SQLAlchemy setup
 │
-├── frontend/                         # 🎨 Next.js Application
+├── frontend/                         #  Next.js Application
 │   ├── app/                        # Next.js App Router
 │   │   ├── page.tsx                # Dashboard homepage
 │   │   ├── login/                  # Authentication pages
@@ -218,25 +218,25 @@ Paperlens/
 │   │   └── ui/                     # Shadcn/UI components
 │   └── lib/                        # Utilities & API clients
 │
-├── faiss_index/                      # 🔍 Vector Database
+├── faiss_index/                      #  Vector Database
 │   ├── text_index.faiss            # Text embeddings (BGE)
 │   ├── image_index.faiss           # Image embeddings (CLIP)
 │   └── faiss_index/                # Legacy unified index
 │
-├── storage/                          # 📁 File Storage
+├── storage/                          #  File Storage
 │   ├── raw/                        # Original PDF papers
 │   ├── processed/                  # Extracted content
 │   │   ├── images/                 # Figures & diagrams
 │   │   └── paper_*/                # Per-paper text & images
 │   └── papers/                     # Downloaded PDFs
 │
-└── scripts/                          # 🛠️ Utility Scripts
+└── scripts/                          #  Utility Scripts
     ├── init_db.py                  # Database initialization
     ├── seed_user.py                # Sample user creation
     └── run_agents.py               # Agent orchestration
 ```
 
-## 🤖 Intelligent Agents
+##  Intelligent Agents
 
 ### 1. **ArXiv Crawler Agent**
 - **Purpose**: Automated daily paper discovery
@@ -285,7 +285,7 @@ CATEGORY_WEIGHTS = {
 }
 ```
 
-## 🤝 Contributing
+##  Contributing
 
 We welcome contributions!
 
@@ -297,19 +297,19 @@ We welcome contributions!
 5. Push and create Pull Request
 
 ### Areas for Contribution
-- 🔍 New embedding models integration
-- 📊 Advanced analytics dashboards
-- 🌐 Multi-language support
-- ⚡ Performance optimizations
-- 🎨 UI/UX improvements
-- 🔍 User feedbacks 
-- 🔍 notification channels
+-  New embedding models integration
+-  Advanced analytics dashboards
+-  Multi-language support
+-  Performance optimizations
+-  UI/UX improvements
+-  User feedbacks 
+-  notification channels
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - **ArXiv** for providing open access to research papers
 - **Google** for Gemini Pro API access
@@ -317,33 +317,33 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Facebook AI** for FAISS vector search
 - **OpenAI** for CLIP multimodal understanding
 
-## 🔮 Future Enhancements
+##  Future Enhancements
 
-### 🎯 Roadmap 
+###  Roadmap 
 
 #### **Advanced Recommendation System**
-- **🎰 Reinforcement Learning Recommender**
+- ** Reinforcement Learning Recommender**
   - Multi-Armed Bandit algorithms for exploration vs exploitation
   - Deep Q-Network (DQN) for long-term user engagement optimization
   - Contextual bandits considering user state, time, and reading patterns
   - A/B testing framework for recommendation strategy evaluation
 
 #### **Enhanced User Feedback & Analytics**
-- **📊 Rich Feedback Mechanisms**
+- ** Rich Feedback Mechanisms**
   - Star ratings and detailed paper reviews
   - Reading time tracking and attention heatmaps
   - Bookmark organization with custom tags and collections
   - Social features: following researchers, sharing reading lists
   - Citation network analysis for impact-based recommendations
 
-- **🔬 Advanced Analytics Dashboard**
+- ** Advanced Analytics Dashboard**
   - Personal research journey visualization
   - Topic evolution and trend analysis
   - Collaboration opportunity detection
   - Research gap identification using knowledge graphs
 
 #### **Multi-Source Content Aggregation**
-- **🌐 Diversified Content Sources**
+- ** Diversified Content Sources**
   - **LinkedIn Research Posts**: Professional insights and industry research
   - **Twitter/X Academic Threads**: Real-time research discussions and preprints
   - **Google Scholar**: Citation networks and h-index tracking
@@ -351,21 +351,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   - **Medium/Towards Data Science**: Practical implementations and tutorials
   - **GitHub Research Repos**: Code implementations and reproducible research
 
-- **📡 Social Media Intelligence**
+- ** Social Media Intelligence**
   - Tweet sentiment analysis for trending topics
   - LinkedIn post engagement metrics
   - Research influencer identification
   - Conference hashtag monitoring (#NeurIPS2024, #ICML2024)
 
 #### **Phase 4: AI-Powered Research Assistant**
-- **🤖 Advanced AI Capabilities**
+- ** Advanced AI Capabilities**
   - Literature gap analysis using LLMs
   - Automated research proposal generation
   - Cross-paper concept linking and knowledge graphs
   - Research methodology recommendations
   - Collaborative filtering with similar researchers
 
-- **🔗 Research Workflow Integration**
+- **Research Workflow Integration**
   - Zotero/Mendeley synchronization
   - LaTeX reference management
   - Notion/Obsidian knowledge base integration
@@ -377,11 +377,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 📞 Support & Contact
+##  Support & Contact
 
-- 🐛 **Issues**: [GitHub Issues](https://github.com/aymen-000/PaperLens/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/aymen-000/PaperLens/discussions)
-- 📧 **Email**: aymne011@gmail.com
+-  **Issues**: [GitHub Issues](https://github.com/aymen-000/PaperLens/issues)
+-  **Discussions**: [GitHub Discussions](https://github.com/aymen-000/PaperLens/discussions)
+-  **Email**: aymne011@gmail.com
 
 ---
 
