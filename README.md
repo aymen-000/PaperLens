@@ -1,3 +1,5 @@
+
+
 # 🔬 ArXiv PaperLens: Intelligent Research Paper Discovery System
 
 <div align="center">
@@ -106,7 +108,7 @@ Normalized to [0,1] range for intuitive scoring.
 1. **Clone and Setup**
    ```bash
    git clone https://github.com/aymen-000/PaperLens
-   cd Paperlans
+   cd PaperLens
    
    # Install Python dependencies
    pip install -r requirements.txt
